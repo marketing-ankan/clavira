@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EnquiryAdminController;
@@ -60,6 +61,10 @@ Route::prefix('api')->group(function () {
     Route::prefix('admin')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 
+        // Public, token-gated admin set-password (invite acceptance)
+        Route::get('/invite/{token}', [AdminUserController::class, 'showInvite']);
+        Route::post('/invite/{token}', [AdminUserController::class, 'acceptInvite'])->middleware('throttle:6,1');
+
         Route::middleware(['auth', 'can:admin'])->group(function () {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/me', [AuthController::class, 'me']);
@@ -86,6 +91,12 @@ Route::prefix('api')->group(function () {
             Route::get('/certificates', [SettingsAdminController::class, 'certificates']);
             Route::post('/certificates', [SettingsAdminController::class, 'storeCertificate']);
             Route::delete('/certificates/{certificate}', [SettingsAdminController::class, 'destroyCertificate']);
+
+            // Admin-user management (invite-only; owners protected)
+            Route::get('/admins', [AdminUserController::class, 'index']);
+            Route::post('/admins/invite', [AdminUserController::class, 'invite']);
+            Route::post('/admins/{user}/resend', [AdminUserController::class, 'resend']);
+            Route::delete('/admins/{user}', [AdminUserController::class, 'revoke']);
         });
     });
 });

@@ -25,6 +25,7 @@ import AccountWishlist from './pages/AccountWishlist';
 import AccountAddresses from './pages/AccountAddresses';
 import AdminLayout from './admin/AdminLayout';
 import AdminLogin from './admin/AdminLogin';
+import SetPassword from './admin/SetPassword';
 import Dashboard from './admin/Dashboard';
 import Products from './admin/Products';
 import ProductEdit from './admin/ProductEdit';
@@ -32,6 +33,7 @@ import Orders from './admin/Orders';
 import OrderDetail from './admin/OrderDetail';
 import Enquiries from './admin/Enquiries';
 import Settings from './admin/Settings';
+import Admins from './admin/Admins';
 
 function ShopLayout() {
     return (
@@ -78,6 +80,7 @@ export default function App() {
 
                 {/* Admin */}
                 <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/set-password/:token" element={<SetPassword />} />
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<Dashboard />} />
                     <Route path="products" element={<Products />} />
@@ -86,6 +89,7 @@ export default function App() {
                     <Route path="orders/:id" element={<OrderDetail />} />
                     <Route path="enquiries" element={<Enquiries />} />
                     <Route path="settings" element={<Settings />} />
+                    <Route path="admins" element={<Admins />} />
                 </Route>
             </Routes>
         </BrowserRouter>

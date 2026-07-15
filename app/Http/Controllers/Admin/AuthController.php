@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class AuthController extends Controller
 {
@@ -20,7 +21,9 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid email or password.'], 422);
         }
 
-        if (! $request->user()->is_admin) {
+        // Full authorization check — the DB flag alone is never enough; the
+        // account must also satisfy the admin Gate (owner or allowlisted domain).
+        if (Gate::denies('admin', $request->user())) {
             Auth::logout();
 
             return response()->json(['message' => 'This account does not have admin access.'], 403);

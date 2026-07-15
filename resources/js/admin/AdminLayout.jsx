@@ -7,6 +7,7 @@ const NAV = [
     ['/admin/products', 'Products', 'M20 7L12 3 4 7v10l8 4 8-4V7zM12 12L4 8m8 4l8-4m-8 4v9'],
     ['/admin/orders', 'Orders', 'M6 6h12l1 14H5L6 6zm3 4a3 3 0 006 0'],
     ['/admin/enquiries', 'Enquiries', 'M4 5h16v11H8l-4 4V5z'],
+    ['/admin/admins', 'Admins', 'M9 11a3 3 0 100-6 3 3 0 000 6zm7 0a3 3 0 100-6M3 20c0-3 3-5 6-5s6 2 6 5m3 0c0-2-1.5-3.5-3.5-4'],
     ['/admin/settings', 'Settings', 'M12 8a4 4 0 100 8 4 4 0 000-8zm8 4l2-1-1-3-2 .5a7 7 0 00-1.5-1.5L18 4l-3-1-1 2a7 7 0 00-2 0L11 3 8 4l.5 2.5A7 7 0 007 8l-2.5-.5L3.5 10.5 5.5 12l-2 1 1 3 2-.5A7 7 0 008 17l-.5 2.5 3 1 1-2a7 7 0 002 0l1 2 3-1-.5-2.5a7 7 0 001.5-1.5l2 .5 1-3-2-1z'],
 ];
 
