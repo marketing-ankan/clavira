@@ -13,8 +13,15 @@ const LINKS = {
     House: [
         ['Craftsmanship', '/craftsmanship'],
         ['Verify Certificate', '/verify'],
-        ['Our Promise', '/#promise'],
+        ['My Account', '/account'],
         ['Contact Us', '/contact'],
+    ],
+    Policies: [
+        ['Shipping', '/policies/shipping'],
+        ['Returns & Exchange', '/policies/returns'],
+        ['Exchange Promise', '/policies/exchange'],
+        ['Privacy', '/policies/privacy'],
+        ['Terms', '/policies/terms'],
     ],
 };
 
@@ -22,8 +29,8 @@ export default function Footer() {
     return (
         <footer className="bg-charcoal text-white/80 mt-24">
             <div className="max-w-7xl mx-auto px-4 lg:px-8 py-16">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-                    <div className="lg:col-span-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-12">
+                    <div className="col-span-2">
                         <Logo light />
                         <p className="mt-6 max-w-md text-sm leading-relaxed text-white/60">
                             Heritage shaped by master craftsmanship, and brilliance refined into a curated

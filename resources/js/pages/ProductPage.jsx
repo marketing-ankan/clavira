@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import api from '../api';
 import { diamondLabel, formatPrice, metalLabel } from '../format';
 import { useCart } from '../store';
+import WishlistButton from '../components/WishlistButton';
 import ProductCard from '../components/ProductCard';
 import Reveal from '../components/Reveal';
 
@@ -133,7 +134,10 @@ export default function ProductPage() {
                         {product.is_jadau && <Badge dark>Jadau Kundan</Badge>}
                     </div>
 
-                    <h1 className="font-display text-3xl md:text-4xl leading-tight">{product.name}</h1>
+                    <div className="flex items-start justify-between gap-4">
+                        <h1 className="font-display text-3xl md:text-4xl leading-tight">{product.name}</h1>
+                        <WishlistButton productId={product.id} className="mt-1 shrink-0 text-charcoal/60 hover:text-gold" />
+                    </div>
                     <p className="text-charcoal/60 mt-3 leading-relaxed">{product.description}</p>
 
                     <p className="font-display text-3xl text-gold mt-6">{formatPrice(price)}</p>

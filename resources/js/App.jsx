@@ -1,5 +1,6 @@
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { CartProvider } from './store';
+import { AccountProvider } from './account';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
@@ -15,6 +16,13 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import SearchPage from './pages/SearchPage';
 import ContactPage from './pages/ContactPage';
+import PolicyPage from './pages/PolicyPage';
+import AccountAuth from './pages/AccountAuth';
+import AccountLayout from './pages/AccountLayout';
+import AccountOverview from './pages/AccountOverview';
+import { AccountOrders, AccountOrderDetail } from './pages/AccountOrders';
+import AccountWishlist from './pages/AccountWishlist';
+import AccountAddresses from './pages/AccountAddresses';
 import AdminLayout from './admin/AdminLayout';
 import AdminLogin from './admin/AdminLogin';
 import Dashboard from './admin/Dashboard';
@@ -27,12 +35,14 @@ import Settings from './admin/Settings';
 
 function ShopLayout() {
     return (
-        <CartProvider>
-            <Header />
-            <CartDrawer />
-            <Outlet />
-            <Footer />
-        </CartProvider>
+        <AccountProvider>
+            <CartProvider>
+                <Header />
+                <CartDrawer />
+                <Outlet />
+                <Footer />
+            </CartProvider>
+        </AccountProvider>
     );
 }
 
@@ -54,6 +64,15 @@ export default function App() {
                     <Route path="/order-success" element={<OrderSuccessPage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/policies/:slug" element={<PolicyPage />} />
+                    <Route path="/account/login" element={<AccountAuth />} />
+                    <Route path="/account" element={<AccountLayout />}>
+                        <Route index element={<AccountOverview />} />
+                        <Route path="orders" element={<AccountOrders />} />
+                        <Route path="orders/:orderNo" element={<AccountOrderDetail />} />
+                        <Route path="wishlist" element={<AccountWishlist />} />
+                        <Route path="addresses" element={<AccountAddresses />} />
+                    </Route>
                     <Route path="*" element={<NotFound />} />
                 </Route>
 

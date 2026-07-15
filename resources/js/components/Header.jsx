@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import api from '../api';
 import { formatPrice } from '../format';
 import { useCart } from '../store';
+import { useAccount } from '../account';
 import Logo from './Logo';
 
 const NAV = [
@@ -23,6 +24,7 @@ export default function Header() {
     const [searchOpen, setSearchOpen] = useState(false);
     const [q, setQ] = useState('');
     const { count, setDrawerOpen } = useCart();
+    const { user, wishlistCount } = useAccount();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -90,6 +92,22 @@ export default function Header() {
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                 <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z" />
                                 <path d="m9 12 2 2 4-4" />
+                            </svg>
+                        </Link>
+                        <Link to="/account/wishlist" className="hidden md:inline-flex p-2 relative" aria-label={`Wishlist, ${wishlistCount} items`} title="Wishlist">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M12 21s-7-4.35-9.5-8.5C1 9.5 2.5 6 6 6c2 0 3.2 1.2 4 2.3C10.8 7.2 12 6 14 6c3.5 0 5 3.5 3.5 6.5C19 16.65 12 21 12 21z" />
+                            </svg>
+                            {wishlistCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 bg-gold text-white text-[10px] min-w-[18px] min-h-[18px] rounded-full flex items-center justify-center">
+                                    {wishlistCount}
+                                </span>
+                            )}
+                        </Link>
+                        <Link to={user ? '/account' : '/account/login'} className="p-2" aria-label={user ? 'My account' : 'Sign in'} title={user ? 'My account' : 'Sign in'}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
                             </svg>
                         </Link>
                         <button className="p-2 relative" onClick={() => setDrawerOpen(true)} aria-label={`Cart, ${count} items`}>

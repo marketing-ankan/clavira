@@ -6,11 +6,14 @@ use App\Http\Controllers\Admin\EnquiryAdminController;
 use App\Http\Controllers\Admin\OrderAdminController;
 use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\SettingsAdminController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('api')->group(function () {
@@ -33,6 +36,25 @@ Route::prefix('api')->group(function () {
 
     Route::post('/certificates/verify', [CertificateController::class, 'verify']);
     Route::post('/enquiries', [EnquiryController::class, 'store']);
+
+    // ---- Wishlist (works for guests via session, merges on login) ----
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle']);
+    Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy']);
+
+    // ---- Customer accounts ----
+    Route::post('/auth/register', [CustomerAuthController::class, 'register'])->middleware('throttle:6,1');
+    Route::post('/auth/login', [CustomerAuthController::class, 'login'])->middleware('throttle:6,1');
+    Route::post('/auth/logout', [CustomerAuthController::class, 'logout']);
+    Route::middleware('auth')->group(function () {
+        Route::get('/auth/me', [CustomerAuthController::class, 'me']);
+        Route::get('/account/orders', [AccountController::class, 'orders']);
+        Route::get('/account/orders/{orderNo}', [AccountController::class, 'order']);
+        Route::get('/account/addresses', [AccountController::class, 'addresses']);
+        Route::post('/account/addresses', [AccountController::class, 'storeAddress']);
+        Route::put('/account/addresses/{address}', [AccountController::class, 'updateAddress']);
+        Route::delete('/account/addresses/{address}', [AccountController::class, 'destroyAddress']);
+    });
 
     // ---- Admin ----
     Route::prefix('admin')->group(function () {
