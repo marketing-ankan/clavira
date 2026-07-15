@@ -1,5 +1,9 @@
 * text=auto eol=lf
 
+# Committed dependencies: ship exactly as-is, never normalize line endings
+/vendor/** -text
+/public/build/** -text
+
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
