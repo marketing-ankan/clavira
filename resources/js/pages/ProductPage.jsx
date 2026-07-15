@@ -4,6 +4,8 @@ import api from '../api';
 import { diamondLabel, formatPrice, metalLabel } from '../format';
 import { useCart } from '../store';
 import WishlistButton from '../components/WishlistButton';
+import ProductReviews from '../components/ProductReviews';
+import Stars from '../components/Stars';
 import ProductCard from '../components/ProductCard';
 import Reveal from '../components/Reveal';
 
@@ -138,6 +140,12 @@ export default function ProductPage() {
                         <h1 className="font-display text-3xl md:text-4xl leading-tight">{product.name}</h1>
                         <WishlistButton productId={product.id} className="mt-1 shrink-0 text-charcoal/60 hover:text-gold" />
                     </div>
+                    {data.rating?.count > 0 && (
+                        <div className="flex items-center gap-2 mt-3">
+                            <Stars value={data.rating.average} size={15} />
+                            <span className="text-xs text-charcoal/50">{data.rating.average} · {data.rating.count} review{data.rating.count === 1 ? '' : 's'}</span>
+                        </div>
+                    )}
                     <p className="text-charcoal/60 mt-3 leading-relaxed">{product.description}</p>
 
                     <p className="font-display text-3xl text-gold mt-6">{formatPrice(price)}</p>
@@ -260,6 +268,8 @@ export default function ProductPage() {
                     </div>
                 </section>
             )}
+
+            <ProductReviews slug={product.slug} />
         </main>
     );
 }

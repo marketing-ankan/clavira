@@ -20,6 +20,12 @@ class CatalogController extends Controller
             'featured' => Product::with('images')->where('featured', true)->where('active', true)->get()
                 ->map(fn ($p) => $this->card($p)),
             'gold_rate' => GoldRate::latest_rate(),
+            'contact' => [
+                'whatsapp' => config('clavira.whatsapp'),
+                'phone' => config('clavira.phone'),
+                'email' => config('clavira.email'),
+                'instagram' => config('clavira.instagram'),
+            ],
         ]);
     }
 
@@ -71,10 +77,16 @@ class CatalogController extends Controller
 
         $certificate = Certificate::where('product_id', $product->id)->first();
 
+        $approved = \App\Models\Review::where('product_id', $product->id)->where('status', 'approved');
+
         return response()->json([
             'product' => $product,
             'related' => $related,
             'certificate' => $certificate?->only(['certificate_no', 'type']),
+            'rating' => [
+                'count' => (clone $approved)->count(),
+                'average' => round((clone $approved)->avg('rating') ?? 0, 1),
+            ],
         ]);
     }
 

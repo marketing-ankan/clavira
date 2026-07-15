@@ -1,5 +1,48 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../api';
 import Logo from './Logo';
+
+function Newsletter() {
+    const [email, setEmail] = useState('');
+    const [msg, setMsg] = useState('');
+    const [busy, setBusy] = useState(false);
+
+    const submit = async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        try {
+            const { data } = await api.post('/newsletter', { email, source: 'footer' });
+            setMsg(data.message);
+            setEmail('');
+        } catch {
+            setMsg('Please enter a valid email.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div>
+            <h3 className="eyebrow text-gold mb-4">The Clavira Circle</h3>
+            <p className="text-sm text-white/60 mb-4 leading-relaxed">New collections, private previews and the stories behind our craft.</p>
+            {msg ? (
+                <p className="text-sm text-gold-light">{msg}</p>
+            ) : (
+                <form onSubmit={submit} className="flex">
+                    <input
+                        type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Your email"
+                        className="flex-1 min-w-0 bg-transparent border border-white/25 focus:border-gold px-3 py-2.5 text-sm text-white placeholder:text-white/40"
+                    />
+                    <button type="submit" disabled={busy} className="bg-gold text-white px-4 text-xs uppercase tracking-[0.15em] hover:bg-gold-light transition-colors">
+                        Join
+                    </button>
+                </form>
+            )}
+        </div>
+    );
+}
 
 const LINKS = {
     Collections: [
@@ -12,6 +55,7 @@ const LINKS = {
     ],
     House: [
         ['Craftsmanship', '/craftsmanship'],
+        ['Book a Consultation', '/consultation'],
         ['Verify Certificate', '/verify'],
         ['My Account', '/account'],
         ['Contact Us', '/contact'],
@@ -40,6 +84,9 @@ export default function Footer() {
                             <span>BIS Hallmarked</span>
                             <span>IGI Certified</span>
                             <span>Est. in Excellence</span>
+                        </div>
+                        <div className="mt-8 max-w-sm">
+                            <Newsletter />
                         </div>
                     </div>
 

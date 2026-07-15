@@ -2,18 +2,23 @@
 
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\ConsultationAdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EnquiryAdminController;
 use App\Http\Controllers\Admin\OrderAdminController;
 use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\ReviewAdminController;
 use App\Http\Controllers\Admin\SettingsAdminController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +42,12 @@ Route::prefix('api')->group(function () {
 
     Route::post('/certificates/verify', [CertificateController::class, 'verify']);
     Route::post('/enquiries', [EnquiryController::class, 'store']);
+
+    // ---- Engagement (Phase 11) ----
+    Route::get('/products/{slug}/reviews', [ReviewController::class, 'index']);
+    Route::post('/products/{slug}/reviews', [ReviewController::class, 'store'])->middleware('throttle:10,1');
+    Route::post('/consultations', [ConsultationController::class, 'store'])->middleware('throttle:10,1');
+    Route::post('/newsletter', [NewsletterController::class, 'subscribe'])->middleware('throttle:10,1');
 
     // ---- Wishlist (works for guests via session, merges on login) ----
     Route::get('/wishlist', [WishlistController::class, 'index']);
@@ -97,6 +108,13 @@ Route::prefix('api')->group(function () {
             Route::post('/admins/invite', [AdminUserController::class, 'invite']);
             Route::post('/admins/{user}/resend', [AdminUserController::class, 'resend']);
             Route::delete('/admins/{user}', [AdminUserController::class, 'revoke']);
+
+            // Engagement moderation (Phase 11)
+            Route::get('/reviews', [ReviewAdminController::class, 'index']);
+            Route::patch('/reviews/{review}/status', [ReviewAdminController::class, 'updateStatus']);
+            Route::delete('/reviews/{review}', [ReviewAdminController::class, 'destroy']);
+            Route::get('/consultations', [ConsultationAdminController::class, 'index']);
+            Route::patch('/consultations/{consultation}/status', [ConsultationAdminController::class, 'updateStatus']);
         });
     });
 });

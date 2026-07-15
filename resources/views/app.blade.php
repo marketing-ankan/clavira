@@ -4,6 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @php
+        $claviraConfig = [
+            'whatsapp' => config('clavira.whatsapp'),
+            'phone' => config('clavira.phone'),
+            'email' => config('clavira.email'),
+            'instagram' => config('clavira.instagram'),
+        ];
+    @endphp
+    <script>
+        window.__CLAVIRA = {!! json_encode($claviraConfig) !!};
+    </script>
     <title>Clavira — Fine Jewellery | BIS Hallmarked · IGI Certified</title>
     <meta name="description" content="Clavira fine jewellery — lab-grown IGI-certified diamonds and Jadau Kundan heritage in BIS-hallmarked gold. Zero deductions on gold exchange, 98% gold value return.">
     <link rel="icon" type="image/png" href="/images/brand/favicon.png">

@@ -4,6 +4,7 @@ import { AccountProvider } from './account';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
+import WhatsAppButton from './components/WhatsAppButton';
 import HomePage from './pages/HomePage';
 import CategoryPage from './pages/CategoryPage';
 import ProductPage from './pages/ProductPage';
@@ -16,6 +17,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import SearchPage from './pages/SearchPage';
 import ContactPage from './pages/ContactPage';
+import ConsultationPage from './pages/ConsultationPage';
 import PolicyPage from './pages/PolicyPage';
 import AccountAuth from './pages/AccountAuth';
 import AccountLayout from './pages/AccountLayout';
@@ -34,6 +36,8 @@ import OrderDetail from './admin/OrderDetail';
 import Enquiries from './admin/Enquiries';
 import Settings from './admin/Settings';
 import Admins from './admin/Admins';
+import Reviews from './admin/Reviews';
+import Consultations from './admin/Consultations';
 
 function ShopLayout() {
     return (
@@ -43,6 +47,7 @@ function ShopLayout() {
                 <CartDrawer />
                 <Outlet />
                 <Footer />
+                <WhatsAppButton />
             </CartProvider>
         </AccountProvider>
     );
@@ -66,6 +71,7 @@ export default function App() {
                     <Route path="/order-success" element={<OrderSuccessPage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/consultation" element={<ConsultationPage />} />
                     <Route path="/policies/:slug" element={<PolicyPage />} />
                     <Route path="/account/login" element={<AccountAuth />} />
                     <Route path="/account" element={<AccountLayout />}>
@@ -88,6 +94,8 @@ export default function App() {
                     <Route path="orders" element={<Orders />} />
                     <Route path="orders/:id" element={<OrderDetail />} />
                     <Route path="enquiries" element={<Enquiries />} />
+                    <Route path="reviews" element={<Reviews />} />
+                    <Route path="consultations" element={<Consultations />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="admins" element={<Admins />} />
                 </Route>
