@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import api from '../api';
@@ -31,6 +32,18 @@ export default function Header() {
         api.get('/gold-rate').then(({ data }) => setRate(data.gold_rate)).catch(() => {});
     }, []);
 
+    // While the mobile drawer is open: lock background scroll and let Escape close it.
+    useEffect(() => {
+        if (!menuOpen) return;
+        const onKey = (e) => e.key === 'Escape' && setMenuOpen(false);
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKey);
+        return () => {
+            document.body.style.overflow = '';
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [menuOpen]);
+
     const submitSearch = (e) => {
         e.preventDefault();
         if (q.trim().length > 1) {
@@ -49,6 +62,7 @@ export default function Header() {
     ].filter(Boolean);
 
     return (
+        <>
         <header className="sticky top-0 z-50 bg-ivory/95 backdrop-blur border-b border-gold/20">
             {/* Announcement ticker */}
             <div className="bg-charcoal text-gold-light overflow-hidden py-1.5" aria-label="Announcements">
@@ -168,17 +182,25 @@ export default function Header() {
                 )}
             </AnimatePresence>
 
-            {/* Mobile drawer */}
+            {/* Mobile drawer is rendered via a portal below, outside this
+                backdrop-blurred <header> — a backdrop-filter ancestor becomes
+                the containing block for position:fixed, which would otherwise
+                trap the drawer inside the header's bounds. */}
+        </header>
+
+        {/* Mobile drawer — portaled to <body> so `fixed` anchors to the viewport
+            and it slides in full-height from the left. */}
+        {createPortal(
             <AnimatePresence>
                 {menuOpen && (
                     <>
                         <motion.div
-                            className="fixed inset-0 bg-black/50 z-50"
+                            className="fixed inset-0 bg-black/50 z-[60]"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => setMenuOpen(false)}
                         />
                         <motion.aside
-                            className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-ivory z-50 p-8 overflow-y-auto"
+                            className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-ivory z-[70] p-8 overflow-y-auto shadow-2xl"
                             initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
                             transition={{ type: 'tween', duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                             aria-label="Menu"
@@ -211,7 +233,9 @@ export default function Header() {
                         </motion.aside>
                     </>
                 )}
-            </AnimatePresence>
-        </header>
+            </AnimatePresence>,
+            document.body,
+        )}
+        </>
     );
 }

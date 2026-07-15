@@ -36,8 +36,8 @@ export default function SetPassword() {
     };
 
     const Shell = ({ children }) => (
-        <div className="min-h-screen bg-charcoal flex items-center justify-center px-4">
-            <div className="w-full max-w-sm bg-ivory p-8 border-t-2 border-gold text-center">
+        <div className="min-h-screen admin-auth-bg flex items-center justify-center px-4">
+            <div className="w-full max-w-sm bg-ivory p-8 border-t-2 border-gold text-center shadow-2xl">
                 <img src="/images/brand/clavira-wordmark.png" alt="CLAVIRA" className="h-8 mx-auto" />
                 <p className="text-[11px] uppercase tracking-[0.24em] text-gold mt-3 mb-6">Admin Access</p>
                 {children}
