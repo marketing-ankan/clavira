@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EnquiryAdminController;
+use App\Http\Controllers\Admin\OrderAdminController;
+use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\SettingsAdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CertificateController;
@@ -27,6 +33,39 @@ Route::prefix('api')->group(function () {
 
     Route::post('/certificates/verify', [CertificateController::class, 'verify']);
     Route::post('/enquiries', [EnquiryController::class, 'store']);
+
+    // ---- Admin ----
+    Route::prefix('admin')->group(function () {
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
+
+        Route::middleware(['auth', 'can:admin'])->group(function () {
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/me', [AuthController::class, 'me']);
+            Route::get('/stats', [DashboardController::class, 'stats']);
+
+            Route::get('/products', [ProductAdminController::class, 'index']);
+            Route::post('/products', [ProductAdminController::class, 'store']);
+            Route::get('/products/{product}', [ProductAdminController::class, 'show']);
+            Route::put('/products/{product}', [ProductAdminController::class, 'update']);
+            Route::delete('/products/{product}', [ProductAdminController::class, 'destroy']);
+            Route::post('/products/{product}/images', [ProductAdminController::class, 'uploadImage']);
+            Route::delete('/products/{product}/images/{image}', [ProductAdminController::class, 'deleteImage']);
+            Route::patch('/products/{product}/images/{image}/primary', [ProductAdminController::class, 'setPrimaryImage']);
+
+            Route::get('/orders', [OrderAdminController::class, 'index']);
+            Route::get('/orders/{order}', [OrderAdminController::class, 'show']);
+            Route::patch('/orders/{order}/status', [OrderAdminController::class, 'updateStatus']);
+
+            Route::get('/enquiries', [EnquiryAdminController::class, 'index']);
+            Route::patch('/enquiries/{enquiry}/status', [EnquiryAdminController::class, 'updateStatus']);
+
+            Route::get('/gold-rates', [SettingsAdminController::class, 'goldRates']);
+            Route::post('/gold-rates', [SettingsAdminController::class, 'storeGoldRate']);
+            Route::get('/certificates', [SettingsAdminController::class, 'certificates']);
+            Route::post('/certificates', [SettingsAdminController::class, 'storeCertificate']);
+            Route::delete('/certificates/{certificate}', [SettingsAdminController::class, 'destroyCertificate']);
+        });
+    });
 });
 
 // SPA — React Router owns every non-API path

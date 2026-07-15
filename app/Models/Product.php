@@ -40,6 +40,12 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class)->where('active', true);
     }
 
+    /** Unfiltered variants — admin management needs inactive rows too. */
+    public function allVariants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
     public function primaryImage(): ?string
     {
         $img = $this->images->firstWhere('is_primary', true) ?? $this->images->first();
