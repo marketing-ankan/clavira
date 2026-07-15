@@ -19,4 +19,12 @@ return [
 
     // How long an admin invite / set-password link stays valid.
     'invite_ttl_hours' => (int) env('ADMIN_INVITE_TTL_HOURS', 72),
+
+    // Email both owners whenever an admin signs in.
+    'login_alerts' => (bool) env('ADMIN_LOGIN_ALERTS', true),
+
+    // Secret "knock" path that reveals the admin login. When set, /admin returns
+    // 404 until the visitor first opens /<gate_key> (which sets a cookie). Leave
+    // blank to keep the admin login reachable directly at /admin (default).
+    'gate_key' => env('ADMIN_GATE_KEY'),
 ];

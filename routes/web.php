@@ -119,5 +119,26 @@ Route::prefix('api')->group(function () {
     });
 });
 
-// SPA — React Router owns every non-API path
-Route::get('/{any?}', fn () => view('app'))->where('any', '^(?!api).*$');
+// Secret admin "knock" — visiting /<gate_key> reveals the admin login by
+// setting a cookie, then redirects to it. Only registered when a key is set.
+if ($gateKey = config('admin.gate_key')) {
+    Route::get('/'.$gateKey, function () {
+        // 30-day, http-only, signed-by-app cookie; owners bookmark THIS url
+        return redirect('/admin/login')->cookie('clv_admin_gate', '1', 60 * 24 * 30, null, null, request()->secure(), true);
+    });
+}
+
+// SPA — React Router owns every non-API path. When a gate key is configured,
+// admin UI paths 404 unless the visitor has knocked first (set-password links
+// stay reachable so invitees can always activate their accounts).
+Route::get('/{any?}', function (string $any = '') {
+    $gateKey = config('admin.gate_key');
+    if ($gateKey
+        && (str_starts_with($any, 'admin/') || $any === 'admin')
+        && ! str_starts_with($any, 'admin/set-password/')
+        && ! request()->cookie('clv_admin_gate')) {
+        abort(404);
+    }
+
+    return view('app');
+})->where('any', '^(?!api).*$');
