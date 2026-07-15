@@ -1,6 +1,6 @@
-# Clavira — Build Log (Phase 1–6)
+# Clavira — Build Log
 
-_Last updated: 2026-07-15 · Status: v1 storefront complete & verified locally, not yet deployed._
+_Last updated: 2026-07-15 · Status: storefront + admin + accounts complete; live on a temporary Hostinger domain._
 
 This document records everything built so far. For what remains, see [ROADMAP.md](ROADMAP.md).
 
@@ -138,8 +138,62 @@ product's primary image (brochure images kept as gallery alternates).
 - **Responsive sweep 360 → 2560px** (incl. 768 / 1024) — zero horizontal overflow on any page.
 - No console errors.
 
-## 9. Version control
+## 9. Version control & deploy
 
-- Initial commit `8f15658` on `main` (463 files).
-- `.env`, `vendor/`, `node_modules/` correctly excluded; 358 catalog images committed.
-- No remote configured yet (not pushed/deployed).
+- Git repo with GitHub remote; `dev` (feature work) and `main` (deploy) branches.
+- `.env`, `vendor/`, `node_modules/` excluded from source; `vendor/` + `public/build` are
+  committed for deploy because Hostinger has no Composer/Node.
+- Live on a **temporary Hostinger domain**; `deploy/hostinger-setup.sh` + `hostinger-deploy.sh`
+  (cron `git pull --ff-only` → `migrate --force` → refresh build/caches).
+
+---
+
+## 10. Admin panel (Phase 8)
+
+- Session-authenticated admin at `/admin` (React, in the same SPA, standalone layout).
+- Dashboard (revenue, orders, products, enquiries, gold rate); product/variant/image CRUD with
+  upload; order status management; enquiry inbox; gold-rate publishing; certificate management.
+- CSRF via the rotating `XSRF-TOKEN` cookie (fixes stale-token-after-login).
+
+## 11. Admin access control
+
+- **Owner allowlist** (`config/admin.php` → `ADMIN_OWNERS`, `ADMIN_ALLOWED_DOMAINS`).
+- The `admin` gate requires the DB `is_admin` flag **and** an allowlisted email (owner or company
+  domain) — the flag alone is never enough. The admin login enforces the full gate.
+- **No public path to admin:** customer registration only ever makes non-admins, and `is_admin`
+  is not mass-assignable (injection dropped).
+- **Invite-only additions:** an owner invites a company-domain email; the invitee sets their own
+  password via a single-use, expiring, hashed-token link (`admin_invitations`). Owners and self
+  are protected from revoke.
+- Threat-tested: customer register+inject, customer→admin endpoints/login/self-invite, and a
+  DB-forced `is_admin` on a non-company email are all blocked (403); single-use + expiry enforced.
+
+## 12. Customer accounts & wishlist (Phase 9)
+
+- Register / login / logout (session-based, rate-limited); order history; saved addresses
+  (international-ready). Orders placed while logged in appear in the account.
+- Wishlist works for guests (session) and **merges into the account on login**; heart control on
+  product cards and the product page; account area at `/account`.
+
+## 13. Email pipeline (SMTP)
+
+- Branded, email-client-safe `AdminInviteMail`; invite sending is failure-resilient (a mail error
+  never breaks invite creation — the link stays in the panel and the error is logged).
+- `php artisan clavira:mail-test {email} [--invite]` verifies SMTP on the server.
+- `.env.example` documents Hostinger SMTP + transactional alternatives. Ready to also power
+  order-confirmation and password-reset emails.
+
+## 14. Policy pages (Phase 7, do-able part)
+
+- Shipping, Returns & Exchange, Exchange Promise, Privacy, Terms — draft copy for client/legal
+  review, linked in the footer.
+
+---
+
+## Verification done (running)
+
+- Full purchase flow end-to-end (configurator → cart → checkout → order).
+- Accounts: register → wishlist toggle+merge → order history → addresses.
+- Admin: all CRUD + moderation flows; the full admin-access threat model.
+- Email: branded invite renders and sends through the pipeline; graceful SMTP-failure handling.
+- **Responsive sweep 360 → 2560px** (incl. 768 / 1024) — zero horizontal overflow; no console errors.

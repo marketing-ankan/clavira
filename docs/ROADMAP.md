@@ -2,7 +2,7 @@
 
 _Last updated: 2026-07-15_
 
-Legend: ✅ done · 🔷 next up · ⬜ planned · ⛔ blocked on client input
+Legend: ✅ done · 🟡 partially done · 🔷 next up · ⬜ planned · ⛔ blocked on client input
 
 For detail on completed work, see [BUILD-LOG.md](BUILD-LOG.md).
 
@@ -12,81 +12,63 @@ For detail on completed work, see [BUILD-LOG.md](BUILD-LOG.md).
 
 | # | Phase | Status |
 |---|---|---|
-| 0 | **Discovery & stack** — brochure + reference analysis, stack confirmed | ✅ |
-| 1 | **Foundation** — Laravel 12 + React 19 + Vite + Tailwind, MySQL, 13-table schema | ✅ |
+| 1 | **Foundation & database** — Laravel 12 + React 19 + Vite + Tailwind, MySQL, 13-table schema | ✅ |
 | 2 | **Catalog data** — 7 categories, 10 Edits, ~93 products, 1,296 variants, 73 certs | ✅ |
 | 3 | **Storefront UI** — all pages, luxury design system, responsive 360–2560 | ✅ |
-| 4 | **Commerce core** — cart, checkout, Razorpay abstraction, orders, GST, webhook | ✅ |
-| 5 | **Imagery v1** — curated 146 clean images swapped into catalog | ✅ |
-| 6 | **Version control** — initial commit | ✅ |
+| 4 | **Commerce core & payments** — cart, checkout, Razorpay abstraction (demo mode), orders, GST, webhook | ✅ |
+| 5 | **Imagery (v1)** — curated 146 clean images (placeholders) | ✅ |
+| 6 | **Version control** — Git repo, GitHub remote, dev + main branches | ✅ |
+| 8 | **Admin panel** — dashboard, product/order/enquiry/gold-rate/certificate management | ✅ |
+| 8+ | **Admin access control** — owner allowlist + invite-only creation, hardened gate, threat-tested | ✅ |
+| 8+ | **SMTP email pipeline** — branded Mailable, resilient send, `clavira:mail-test` command | ✅ |
+| 9 | **Customer accounts & wishlist** — register/login, order history, addresses, wishlist (guest→login merge) | ✅ |
+
+---
+
+## Partially done
+
+### Phase 7 — Content & brand finalisation 🟡
+- [x] Policy pages (shipping, returns, exchange, privacy, terms)
+- [x] Real Clavira logo + favicon
+- [ ] **Original product photography** (client) — current imagery is curated placeholders
+- [ ] **Final prices & SKUs** sign-off (client)
+- [ ] Legal review of policy copy (client)
+
+### Phase 15 — Deploy to Hostinger 🟡
+- [x] Live on a **temporary Hostinger domain**
+- [x] Deploy scripts + `vendor/`/`public/build` shipping via git
+- [ ] Point the **real domain**; confirm cron auto-pull
+- [ ] Production `.env` (Razorpay keys, SMTP creds, `ADMIN_OWNERS`/`ADMIN_ALLOWED_DOMAINS`), SSL
 
 ---
 
 ## Remaining
 
-### Phase 7 — Content & brand finalisation ⛔ (needs client input)
-The single most important pre-launch phase.
-- [ ] **Original product photography** to replace reference placeholders
-- [ ] Real product list, SKUs, and **pricing sign-off** (current prices are indicative)
-- [ ] Final brand copy review (taglines, product descriptions, policy pages)
-- [ ] Logo/brand assets (favicon, OG images), legal pages (T&C, privacy, returns, shipping)
-
-### Phase 8 — Admin panel 🔷 (recommended next)
-So staff manage the store without code.
-- [ ] Product / variant / image CRUD
-- [ ] Order management (status, fulfilment, invoice)
-- [ ] Enquiry inbox, certificate management, gold-rate update
-- [ ] Admin auth + roles
-- _Approach: Filament admin (fast) or a custom React admin._
-
-### Phase 9 — Customer accounts ⬜
-- [ ] Register / login (schema already present)
-- [ ] Order history & tracking
-- [ ] **Wishlist UI** (table already exists)
-- [ ] Saved addresses (schema ready)
-
 ### Phase 10 — Payments go-live ⛔ (needs live keys)
 - [ ] Live Razorpay keys in server `.env`; enable `RAZORPAY_ENABLED`
-- [ ] Configure webhook URL + secret in Razorpay dashboard
-- [ ] Live test transactions (UPI / card / netbanking)
-- [ ] Refund / cancellation flow
-- [ ] Order-confirmation emails/SMS
+- [ ] Webhook URL + secret in Razorpay dashboard; live UPI/card/netbanking tests
+- [ ] Refund / cancellation flow; order-confirmation emails (email pipeline already built)
 
-### Phase 11 — Engagement & conversion ⬜
-- [ ] **WhatsApp enquiry button** (high value for jewellery)
-- [ ] Appointment / virtual-consultation booking
-- [ ] Product reviews & ratings
-- [ ] Newsletter capture, "notify me", recently-viewed
-- [ ] Custom-design / made-to-order request flow
+### Phase 11 — Engagement & conversion 🔷 (in progress)
+- [ ] WhatsApp enquiry button
+- [ ] Product reviews & ratings (moderated)
+- [ ] Consultation / appointment booking (bridal & bespoke)
+- [ ] Newsletter capture, made-to-order request flow
 
 ### Phase 12 — SEO, performance & PWA ⬜
-- [ ] Server-rendered meta tags / sitemap / structured data (Product schema)
-- [ ] Image lazy-loading polish, `srcset`/WebP, Lighthouse pass
-- [ ] Installable PWA + offline shell (mirrors IndiaTutors)
+- [ ] Meta tags / sitemap / Product structured data
+- [ ] Image tuning (srcset/WebP), Lighthouse pass, installable PWA
 - [ ] Analytics (GA4 / Meta Pixel) + consent banner
 
 ### Phase 13 — NRI activation ⬜ (architecture already in place)
-- [ ] Multi-currency display (USD/GBP/AED/…)
-- [ ] International shipping rates + duties/customs messaging
-- [ ] Country-based tax handling, geo currency default
+- [ ] Multi-currency display; international shipping rates + duties messaging; country tax
 
-### Phase 14 — QA, accessibility & security ⛔/⬜
-- [ ] Full responsive + cross-browser QA
-- [ ] Accessibility pass (WCAG AA)
-- [ ] Security review (input validation, rate limiting, headers, payment edge cases)
-- [ ] Automated tests for cart/checkout/verify
-
-### Phase 15 — Deploy to Hostinger ⛔ (needs remote + domain)
-- [ ] Provide Hostinger git remote / SSH + domain (or temp subdomain)
-- [ ] Commit `vendor/` + `public/build/` (server has no Composer/Node)
-- [ ] dev → main → cron auto-pull pipeline (mirrors IndiaTutors)
-- [ ] Production `.env`, `APP_KEY`, SSL, DB migrate + seed on server
-- [ ] Smoke test on live domain → go-live
+### Phase 14 — QA, accessibility & security ⬜/🟡
+- [x] Admin security hardened + threat-tested
+- [ ] Full accessibility pass (WCAG AA); automated cart/checkout/verify tests; cross-browser QA
 
 ### Phase 16 — Post-launch ⬜
-- [ ] Uptime + error monitoring, DB backups
-- [ ] Gold-rate automation (IBJA fetch via cron)
-- [ ] Iterate on analytics, add collections/campaigns
+- [ ] Monitoring, backups; automated IBJA gold-rate fetch; ongoing iteration
 
 ---
 
@@ -96,10 +78,6 @@ So staff manage the store without code.
 |---|---|
 | Original product photography + final prices/SKUs | Phase 7 (launch quality) |
 | Live Razorpay keys | Phase 10 (real payments) |
-| Hostinger git remote/SSH + domain | Phase 15 (deploy) |
+| Real domain + SMTP mailbox credentials | Phase 15 (go-live) + email delivery |
 
-## Suggested order
-
-**Phase 8 (Admin)** → **Phase 9 (Accounts + Wishlist)** → **Phase 11 (WhatsApp/engagement)**
-can all proceed **now** without client inputs. Phases 7/10/15 run in parallel as you supply
-photography, keys, and hosting.
+**Buildable now without client input:** Phases 11 (engagement), 12 (SEO/PWA), 13 (NRI), 14 (accessibility/tests).
