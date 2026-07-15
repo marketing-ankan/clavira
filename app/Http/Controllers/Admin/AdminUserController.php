@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AdminInviteMail;
 use App\Models\AdminInvitation;
 use App\Models\User;
 use App\Support\AdminAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -136,16 +138,13 @@ class AdminUserController extends Controller
     {
         $url = AdminInvitation::issue($user, $invitedBy?->id);
 
-        Mail::html(
-            "<p>Hello {$user->name},</p>".
-            '<p>You have been granted administrator access to the Clavira dashboard. '.
-            'Set your password using the secure link below (valid for '.config('admin.invite_ttl_hours').' hours):</p>'.
-            "<p><a href=\"{$url}\">{$url}</a></p>".
-            '<p>If you were not expecting this, you can ignore this email.</p>',
-            function ($m) use ($user) {
-                $m->to($user->email)->subject('Your Clavira admin access');
-            }
-        );
+        // Mail failures must never break invite creation — the link is always
+        // available in the panel as a fallback. Log the failure for the admin.
+        try {
+            Mail::to($user->email)->send(new AdminInviteMail($user->name, $url, config('admin.invite_ttl_hours')));
+        } catch (\Throwable $e) {
+            Log::error('Admin invite email failed to send', ['email' => $user->email, 'error' => $e->getMessage()]);
+        }
 
         return $url;
     }
