@@ -1,0 +1,130 @@
+@import 'tailwindcss';
+
+@source '../**/*.blade.php';
+@source '../**/*.jsx';
+@source '../**/*.js';
+
+@theme {
+    /* Clavira luxury palette */
+    --color-ivory: #faf7f2;
+    --color-ivory-dark: #f1ebe1;
+    --color-charcoal: #1a1714;
+    --color-charcoal-soft: #2b2620;
+    --color-gold: #b08d57;
+    --color-gold-light: #d4b98c;
+    --color-gold-pale: #efe6d5;
+    --color-maroon: #5d1f24;
+
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Jost', 'Segoe UI', sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--color-ivory);
+    color: var(--color-charcoal);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Thin elegant scrollbar */
+::-webkit-scrollbar { width: 10px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-ivory-dark); }
+::-webkit-scrollbar-thumb { background: var(--color-gold); border-radius: 4px; }
+
+/* Reusable luxury utilities */
+.font-display { font-family: var(--font-display); }
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.gold-rule {
+    position: relative;
+    display: inline-block;
+}
+.gold-rule::after {
+    content: '';
+    display: block;
+    width: 56px;
+    height: 1px;
+    background: var(--color-gold);
+    margin: 0.9rem auto 0;
+}
+
+.btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--color-gold);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.btn-gold:hover { background: var(--color-charcoal); }
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-gold);
+    color: var(--color-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: transparent;
+}
+.btn-outline:hover { background: var(--color-gold); color: #fff; }
+
+.btn-dark-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: transparent;
+}
+.btn-dark-outline:hover { background: #fff; color: var(--color-charcoal); }
+
+/* Product image hover zoom */
+.img-zoom { overflow: hidden; }
+.img-zoom img { transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
+.img-zoom:hover img { transform: scale(1.06); }
+
+/* Announcement ticker */
+@keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.ticker-track {
+    animation: ticker 40s linear infinite;
+}
+
+input, select, textarea {
+    outline: none;
+}
