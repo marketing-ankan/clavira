@@ -53,7 +53,10 @@ DB_DATABASE=${DB_NAME}
 DB_USERNAME=${DB_USER}
 DB_PASSWORD=${DB_PASS}
 SESSION_DRIVER=database
-SESSION_DOMAIN=${DOMAIN}
+# null => cookie binds to the serving host, so the same build works on the temp
+# hostingersite.com URL and the real domain without an .env edit. Switch domains
+# later with deploy/set-domain.sh (non-destructive).
+SESSION_DOMAIN=null
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 MAIL_MAILER=log
