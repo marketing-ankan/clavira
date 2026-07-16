@@ -8,8 +8,12 @@ _A practical, keep-handy reference for the owners (Dinesh & Seema) and whoever d
 
 | | URL |
 |---|---|
-| **Admin login** | `https://YOUR-DOMAIN/admin` |
-| Live temp site (until the real domain is pointed) | `https://olivedrab-butterfly-264768.hostingersite.com/admin` |
+| **Admin login (LIVE)** | `https://clavira.in/admin` |
+| Same site via the temp URL (still works) | `https://olivedrab-butterfly-264768.hostingersite.com/admin` |
+
+**Owner accounts:** `dinesh@winquestonline.com` and `seema@winquestonline.com`.
+Passwords are **not** written in this file (it's in a public git repo) — they live in
+`docs/CREDENTIALS.local.md` on the development machine (git-ignored, never pushed).
 
 Bookmark it. It is **deliberately not linked** anywhere on the public shop — a normal shopper never sees it.
 
@@ -154,4 +158,5 @@ committed to the repo and shipped as-is.
 | Add another staff admin | Admin → Admins |
 | Verify a certificate (public) | `/verify` |
 
-_Last updated: 2026-07-15._
+_Last updated: 2026-07-16 (live domain clavira.in; owner passwords set directly — see the
+git-ignored `docs/CREDENTIALS.local.md` on the dev machine)._

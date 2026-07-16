@@ -12,6 +12,7 @@
 /.vscode
 /.zed
 /auth.json
+/docs/CREDENTIALS.local.md
 /node_modules
 /public/hot
 /public/storage
