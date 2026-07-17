@@ -5,7 +5,7 @@
 @source '../**/*.js';
 
 @theme {
-    /* Clavira luxury palette */
+    /* Clavira luxury palette — Palette A "Champagne Ivory" (default) */
     --color-ivory: #faf7f2;
     --color-ivory-dark: #f1ebe1;
     --color-charcoal: #1a1714;
@@ -17,6 +17,33 @@
 
     --font-display: 'Cormorant Garamond', Georgia, serif;
     --font-body: 'Jost', 'Segoe UI', sans-serif;
+}
+
+/* ---- Palette experiments (preview switcher) --------------------------------
+   Tailwind v4 utilities resolve colors through these variables at runtime, so
+   overriding them on <html data-palette="..."> re-skins the whole storefront.
+   Palette B "Emerald Regale" — deep emerald replaces charcoal; cooler golds. */
+html[data-palette='emerald'] {
+    --color-ivory: #f7f5ef;
+    --color-ivory-dark: #edeadf;
+    --color-charcoal: #0f231c;
+    --color-charcoal-soft: #1b382e;
+    --color-gold: #ab8d52;
+    --color-gold-light: #d3bc8a;
+    --color-gold-pale: #eae4d1;
+    --color-maroon: #145243;
+}
+
+/* Palette C "Bordeaux Maison" — oxblood depths with rose-champagne golds. */
+html[data-palette='bordeaux'] {
+    --color-ivory: #fbf6f1;
+    --color-ivory-dark: #f3e9e1;
+    --color-charcoal: #2c1216;
+    --color-charcoal-soft: #46212a;
+    --color-gold: #b98a5e;
+    --color-gold-light: #dcb891;
+    --color-gold-pale: #f0e2d3;
+    --color-maroon: #77222e;
 }
 
 html {
@@ -115,6 +142,64 @@ body {
 .img-zoom { overflow: hidden; }
 .img-zoom img { transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
 .img-zoom:hover img { transform: scale(1.06); }
+
+/* ---- Tier-1 cinematic utilities ---- */
+
+/* Hero: continuous slow Ken Burns drift (GPU transform only) */
+@keyframes ken-burns {
+    0% { transform: scale(1.02) translateY(0); }
+    100% { transform: scale(1.14) translateY(-2%); }
+}
+.ken-burns {
+    animation: ken-burns 24s cubic-bezier(0.25, 0.1, 0.25, 1) infinite alternate;
+    will-change: transform;
+}
+
+/* Hairline gold plaque frame inset around the hero */
+.hero-frame {
+    position: absolute;
+    inset: 1.25rem;
+    border: 1px solid rgba(212, 185, 140, 0.28);
+    pointer-events: none;
+}
+@media (min-width: 768px) { .hero-frame { inset: 2rem; } }
+
+/* Product card: lift + long soft shadow + hairline on hover */
+.card-lift {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.7s ease;
+}
+.card-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px -18px rgba(26, 23, 20, 0.28);
+}
+
+/* Crossfade pair inside a card (second image fades in on hover) */
+.crossfade-alt {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .crossfade-alt { opacity: 1; }
+
+/* Scroll cue: slow falling hairline */
+@keyframes scroll-cue {
+    0% { transform: scaleY(0); transform-origin: top; }
+    45% { transform: scaleY(1); transform-origin: top; }
+    55% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+}
+.scroll-cue {
+    width: 1px;
+    height: 56px;
+    background: rgba(212, 185, 140, 0.75);
+    animation: scroll-cue 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* Reduced-motion: quiet everything continuous */
+@media (prefers-reduced-motion: reduce) {
+    .ken-burns, .scroll-cue, .ticker-track { animation: none; }
+}
 
 /* Announcement ticker */
 @keyframes ticker {

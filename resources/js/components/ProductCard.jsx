@@ -7,7 +7,7 @@ export default function ProductCard({ product }) {
         <div className="group block relative">
             <WishlistButton productId={product.id} floating />
             <Link to={`/product/${product.slug}`} className="block">
-                <div className="img-zoom aspect-square bg-ivory-dark relative">
+                <div className="img-zoom card-lift aspect-square bg-ivory-dark relative">
                     {product.image && (
                         <img
                             src={`/${product.image}`}
@@ -16,6 +16,16 @@ export default function ProductCard({ product }) {
                             className="w-full h-full object-cover"
                         />
                     )}
+                    {product.image_alt && (
+                        <img
+                            src={`/${product.image_alt}`}
+                            alt=""
+                            aria-hidden="true"
+                            loading="lazy"
+                            className="crossfade-alt w-full h-full object-cover"
+                        />
+                    )}
+                    <div className="absolute inset-0 border border-gold/0 group-hover:border-gold/50 transition-colors duration-700 pointer-events-none" />
                     {product.is_jadau && (
                         <span className="absolute top-3 left-3 bg-maroon text-white text-[10px] uppercase tracking-[0.2em] px-3 py-1">
                             Jadau

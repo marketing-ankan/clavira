@@ -19,6 +19,18 @@ class CatalogController extends Controller
             'collections' => Collection::where('active', true)->orderBy('sort_order')->get(),
             'featured' => Product::with('images')->where('featured', true)->where('active', true)->get()
                 ->map(fn ($p) => $this->card($p)),
+            'testimonials' => \App\Models\Review::with('product:id,name,slug')
+                ->where('status', 'approved')->where('rating', '>=', 4)
+                ->latest('approved_at')->limit(8)->get()
+                ->map(fn ($r) => [
+                    'id' => $r->id,
+                    'name' => $r->name,
+                    'rating' => $r->rating,
+                    'title' => $r->title,
+                    'body' => \Illuminate\Support\Str::limit($r->body, 220),
+                    'product_name' => $r->product?->name,
+                    'product_slug' => $r->product?->slug,
+                ]),
             'gold_rate' => GoldRate::latest_rate(),
             'contact' => [
                 'whatsapp' => config('clavira.whatsapp'),
@@ -131,13 +143,17 @@ class CatalogController extends Controller
 
     private function card(Product $p): array
     {
+        $primary = $p->primaryImage();
+
         return [
             'id' => $p->id,
             'name' => $p->name,
             'slug' => $p->slug,
             'price' => $p->base_price,
             'currency' => $p->currency,
-            'image' => $p->primaryImage(),
+            'image' => $primary,
+            // A different shot for the card's hover crossfade (null when only one image)
+            'image_alt' => $p->images->firstWhere('path', '!=', $primary)?->path,
             'diamond_type' => $p->diamond_type,
             'diamond_quality' => $p->diamond_quality,
             'is_jadau' => $p->is_jadau,

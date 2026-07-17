@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import WhatsAppButton from './components/WhatsAppButton';
+import PaletteSwitcher from './components/PaletteSwitcher';
 import HomePage from './pages/HomePage';
 import CategoryPage from './pages/CategoryPage';
 import ProductPage from './pages/ProductPage';
@@ -48,6 +49,7 @@ function ShopLayout() {
                 <Outlet />
                 <Footer />
                 <WhatsAppButton />
+                <PaletteSwitcher />
             </CartProvider>
         </AccountProvider>
     );
