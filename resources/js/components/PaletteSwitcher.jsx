@@ -11,7 +11,15 @@ const PALETTES = [
 ];
 
 export default function PaletteSwitcher() {
-    const [active, setActive] = useState(() => localStorage.getItem('clv-palette') || '');
+    const [active, setActive] = useState(() => {
+        // ?palette=emerald|bordeaux|champagne makes each look directly linkable
+        const fromUrl = new URLSearchParams(window.location.search).get('palette');
+        if (fromUrl !== null) {
+            const key = fromUrl === 'champagne' ? '' : fromUrl;
+            if (PALETTES.some((p) => p.key === key)) return key;
+        }
+        return localStorage.getItem('clv-palette') || '';
+    });
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
