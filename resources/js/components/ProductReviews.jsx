@@ -90,9 +90,15 @@ export default function ProductReviews({ slug }) {
             <div className="space-y-6 max-w-2xl">
                 {reviews.map((r) => (
                     <div key={r.id} className="border-b border-gold/10 pb-6 last:border-0">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
                             <Stars value={r.rating} />
                             <span className="text-sm font-medium">{r.name}</span>
+                            {r.verified && (
+                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] text-green-700 bg-green-50 border border-green-200 px-2 py-0.5">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m5 13 4 4L19 7" /></svg>
+                                    Verified Purchase
+                                </span>
+                            )}
                             <span className="text-xs text-charcoal/40">{new Date(r.created_at).toLocaleDateString('en-IN')}</span>
                         </div>
                         {r.title && <p className="font-display text-lg mt-2">{r.title}</p>}

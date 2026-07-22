@@ -56,6 +56,7 @@ const LINKS = {
     House: [
         ['Craftsmanship', '/craftsmanship'],
         ['Book a Consultation', '/consultation'],
+        ['Repair & Restoration', '/services/repair'],
         ['Verify Certificate', '/verify'],
         ['My Account', '/account'],
         ['Contact Us', '/contact'],

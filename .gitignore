@@ -13,6 +13,7 @@
 /.zed
 /auth.json
 /node_modules
+/docs/CREDENTIALS.local.md
 /public/hot
 /public/storage
 /public/images/catalog/uploads

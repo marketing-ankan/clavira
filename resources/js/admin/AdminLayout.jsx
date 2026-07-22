@@ -9,6 +9,7 @@ const NAV = [
     ['/admin/enquiries', 'Enquiries', 'M4 5h16v11H8l-4 4V5z'],
     ['/admin/reviews', 'Reviews', 'M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.7 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z'],
     ['/admin/consultations', 'Consultations', 'M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'],
+    ['/admin/repairs', 'Repairs', 'M14 6l4 4-9 9-4 1 1-4 9-9zm0 0l3-3a2 2 0 013 3l-3 3'],
     ['/admin/admins', 'Admins', 'M9 11a3 3 0 100-6 3 3 0 000 6zm7 0a3 3 0 100-6M3 20c0-3 3-5 6-5s6 2 6 5m3 0c0-2-1.5-3.5-3.5-4'],
     ['/admin/settings', 'Settings', 'M12 8a4 4 0 100 8 4 4 0 000-8zm8 4l2-1-1-3-2 .5a7 7 0 00-1.5-1.5L18 4l-3-1-1 2a7 7 0 00-2 0L11 3 8 4l.5 2.5A7 7 0 007 8l-2.5-.5L3.5 10.5 5.5 12l-2 1 1 3 2-.5A7 7 0 008 17l-.5 2.5 3 1 1-2a7 7 0 002 0l1 2 3-1-.5-2.5a7 7 0 001.5-1.5l2 .5 1-3-2-1z'],
 ];
