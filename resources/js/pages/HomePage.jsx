@@ -4,8 +4,6 @@ import { motion } from 'framer-motion';
 import api from '../api';
 import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
-import CategorySlider from '../components/CategorySlider';
-import CollectionsCarousel from '../components/CollectionsCarousel';
 
 const GOLD_PROMISES = [
     ['BIS Hallmarked', 'Every piece certified by the Bureau of Indian Standards'],
@@ -72,8 +70,40 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ---------- CATEGORIES (slider) ---------- */}
-            <CategorySlider categories={data?.categories} />
+            {/* ---------- CATEGORIES ---------- */}
+            <section className="max-w-7xl mx-auto px-4 lg:px-8 py-20">
+                <Reveal className="text-center mb-12">
+                    <p className="eyebrow text-gold mb-3">Collections</p>
+                    <h2 className="font-display text-3xl md:text-4xl gold-rule">A Curated World of Brilliance</h2>
+                </Reveal>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {(data?.categories ?? []).map((cat, i) => (
+                        <Reveal key={cat.id} delay={i * 0.06} variant="zoom">
+                            <Link to={`/category/${cat.slug}`} className="group block relative img-zoom aspect-[4/5] bg-ivory-dark">
+                                {cat.hero_image && (
+                                    <img src={`/${cat.hero_image}`} alt={cat.name} loading="lazy" className="w-full h-full object-cover" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent" />
+                                <div className="absolute bottom-0 inset-x-0 p-5 text-white">
+                                    <h3 className="font-display text-xl md:text-2xl">{cat.name}</h3>
+                                    <p className="text-[10px] md:text-[11px] uppercase tracking-[0.18em] text-white/70 mt-1">{cat.tagline}</p>
+                                </div>
+                            </Link>
+                        </Reveal>
+                    ))}
+                    {/* Craftsmanship tile completes the grid */}
+                    <Reveal delay={0.42} variant="zoom">
+                        <Link to="/craftsmanship" className="group block relative img-zoom aspect-[4/5] bg-charcoal">
+                            <img src="/images/catalog/p49_00.jpg" alt="Clavira craftsmanship" loading="lazy" className="w-full h-full object-cover opacity-80" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-transparent to-transparent" />
+                            <div className="absolute bottom-0 inset-x-0 p-5 text-white">
+                                <h3 className="font-display text-xl md:text-2xl">Craftsmanship</h3>
+                                <p className="text-[10px] md:text-[11px] uppercase tracking-[0.18em] text-gold-light mt-1">From furnace to forever</p>
+                            </div>
+                        </Link>
+                    </Reveal>
+                </div>
+            </section>
 
             {/* ---------- FEATURED ---------- */}
             <section className="bg-ivory-dark/60 py-20">
@@ -147,8 +177,35 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ---------- THE EDITS (carousel) ---------- */}
-            <CollectionsCarousel collections={data?.collections} />
+            {/* ---------- THE EDITS ---------- */}
+            <section className="bg-ivory-dark/60 py-20">
+                <div className="max-w-7xl mx-auto px-4 lg:px-8">
+                    <Reveal className="text-center mb-12">
+                        <p className="eyebrow text-gold mb-3">Special Collections</p>
+                        <h2 className="font-display text-3xl md:text-4xl gold-rule">The Clavira Edits</h2>
+                    </Reveal>
+                    <div className="flex gap-5 overflow-x-auto pb-4 snap-x">
+                        {(data?.collections ?? []).map((col, i) => (
+                            <Link
+                                key={col.id}
+                                to={`/collections/${col.slug}`}
+                                className="group shrink-0 w-64 md:w-72 snap-start"
+                            >
+                                <div className="img-zoom aspect-[3/4] bg-ivory-dark relative">
+                                    {col.hero_image && (
+                                        <img src={`/${col.hero_image}`} alt={col.name} loading="lazy" className="w-full h-full object-cover" />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 to-transparent" />
+                                    <div className="absolute bottom-0 p-5 text-white">
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-gold-light">{col.badge}</p>
+                                        <h3 className="font-display text-xl leading-snug mt-1">{col.name}</h3>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
             {/* ---------- NRI BAND ---------- */}
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-20">
