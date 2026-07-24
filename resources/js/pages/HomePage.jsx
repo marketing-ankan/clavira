@@ -78,7 +78,7 @@ export default function HomePage() {
                 </Reveal>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {(data?.categories ?? []).map((cat, i) => (
-                        <Reveal key={cat.id} delay={i * 0.06}>
+                        <Reveal key={cat.id} delay={i * 0.06} variant="zoom">
                             <Link to={`/category/${cat.slug}`} className="group block relative img-zoom aspect-[4/5] bg-ivory-dark">
                                 {cat.hero_image && (
                                     <img src={`/${cat.hero_image}`} alt={cat.name} loading="lazy" className="w-full h-full object-cover" />
@@ -92,7 +92,7 @@ export default function HomePage() {
                         </Reveal>
                     ))}
                     {/* Craftsmanship tile completes the grid */}
-                    <Reveal delay={0.42}>
+                    <Reveal delay={0.42} variant="zoom">
                         <Link to="/craftsmanship" className="group block relative img-zoom aspect-[4/5] bg-charcoal">
                             <img src="/images/catalog/p49_00.jpg" alt="Clavira craftsmanship" loading="lazy" className="w-full h-full object-cover opacity-80" />
                             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-transparent to-transparent" />
@@ -114,7 +114,7 @@ export default function HomePage() {
                     </Reveal>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                         {(data?.featured ?? []).slice(0, 8).map((p, i) => (
-                            <Reveal key={p.id} delay={i * 0.05}>
+                            <Reveal key={p.id} delay={i * 0.05} variant="zoom">
                                 <ProductCard product={p} />
                             </Reveal>
                         ))}
@@ -125,11 +125,11 @@ export default function HomePage() {
             {/* ---------- JADAU HERITAGE BAND ---------- */}
             <section className="bg-charcoal text-white overflow-hidden">
                 <div className="max-w-7xl mx-auto grid lg:grid-cols-2">
-                    <div className="img-zoom">
+                    <Reveal variant="left" className="img-zoom">
                         <img src="/images/catalog/p42_01.jpg" alt="Jadau Kundan craftsmanship" loading="lazy" className="w-full h-full object-cover min-h-[320px]" />
-                    </div>
+                    </Reveal>
                     <div className="flex flex-col justify-center p-10 lg:p-20">
-                        <Reveal>
+                        <Reveal variant="right">
                             <p className="eyebrow text-gold-light mb-4">Jadau Kundan</p>
                             <h2 className="font-display text-3xl md:text-5xl leading-tight">Jadau — Reimagined</h2>
                             <p className="mt-6 text-white/70 leading-relaxed max-w-lg">
@@ -156,7 +156,7 @@ export default function HomePage() {
                         <h3 className="font-display text-2xl text-center mb-8">The Gold Promise</h3>
                         <div className="grid grid-cols-2 gap-5">
                             {GOLD_PROMISES.map(([title, desc], i) => (
-                                <Reveal key={title} delay={i * 0.05} className="border border-gold/30 p-6 text-center">
+                                <Reveal key={title} delay={i * 0.05} variant="zoom" className="border border-gold/30 p-6 text-center">
                                     <p className="font-display text-xl text-gold">{title}</p>
                                     <p className="text-xs text-charcoal/60 mt-2 leading-relaxed">{desc}</p>
                                 </Reveal>
@@ -167,7 +167,7 @@ export default function HomePage() {
                         <h3 className="font-display text-2xl text-center mb-8">The Diamond Promise</h3>
                         <div className="grid grid-cols-2 gap-5">
                             {DIAMOND_PROMISES.map(([title, desc], i) => (
-                                <Reveal key={title} delay={i * 0.05} className="border border-gold/30 p-6 text-center bg-charcoal text-white">
+                                <Reveal key={title} delay={i * 0.05} variant="zoom" className="border border-gold/30 p-6 text-center bg-charcoal text-white">
                                     <p className="font-display text-xl text-gold-light">{title}</p>
                                     <p className="text-xs text-white/60 mt-2 leading-relaxed">{desc}</p>
                                 </Reveal>
@@ -211,7 +211,7 @@ export default function HomePage() {
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-20">
                 <div className="grid lg:grid-cols-2 bg-charcoal text-white overflow-hidden">
                     <div className="flex flex-col justify-center p-10 lg:p-16 order-2 lg:order-1">
-                        <Reveal>
+                        <Reveal variant="left">
                             <p className="eyebrow text-gold-light mb-4">NRI Collection</p>
                             <h2 className="font-display text-3xl md:text-4xl leading-tight">Carrying India, Wherever You Are</h2>
                             <ul className="mt-6 space-y-3 text-white/70 text-sm leading-relaxed">
@@ -222,9 +222,9 @@ export default function HomePage() {
                             <Link to="/nri" className="btn-dark-outline mt-8 self-start">Explore NRI Fusion</Link>
                         </Reveal>
                     </div>
-                    <div className="img-zoom order-1 lg:order-2">
+                    <Reveal variant="right" className="img-zoom order-1 lg:order-2">
                         <img src="/images/catalog/p54_00.jpg" alt="NRI collection" loading="lazy" className="w-full h-full object-cover min-h-[300px]" />
-                    </div>
+                    </Reveal>
                 </div>
             </section>
         </main>
