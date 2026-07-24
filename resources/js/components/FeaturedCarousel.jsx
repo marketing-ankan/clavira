@@ -59,14 +59,12 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
                     </div>
 
                     <div className="flex flex-col items-center gap-4 mt-8 lg:w-[46%] lg:min-w-[320px]">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-5">
                             <Ctrl dir={-1} onClick={() => go(active - 1)} disabled={active === 0} />
-                            <span className="text-xs text-charcoal/45 tracking-[0.18em] tabular-nums">
-                                {String(active + 1).padStart(2, '0')} <span className="text-charcoal/25">/ {String(n).padStart(2, '0')}</span>
-                            </span>
                             <Ctrl dir={1} onClick={() => go(active + 1)} disabled={active === n - 1} />
                         </div>
-                        <div className="flex gap-1.5" role="tablist" aria-label="Signature pieces">
+                        {/* dash pagination */}
+                        <div className="flex items-center gap-2" role="tablist" aria-label="Signature pieces">
                             {products.map((p, i) => (
                                 <button
                                     key={p.id}
@@ -74,8 +72,10 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
                                     aria-label={`Go to ${p.name}`}
                                     aria-selected={i === active}
                                     role="tab"
-                                    className={`h-1.5 rounded-full transition-all duration-400 ${i === active ? 'w-7 bg-gold' : 'w-2 bg-charcoal/20 hover:bg-charcoal/40'}`}
-                                />
+                                    className="group py-2"
+                                >
+                                    <span className={`block h-px transition-all duration-500 ${i === active ? 'w-9 bg-gold' : 'w-6 bg-charcoal/25 group-hover:bg-charcoal/50'}`} />
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -114,9 +114,9 @@ function Ctrl({ dir, onClick, disabled }) {
             onClick={onClick}
             disabled={disabled}
             aria-label={dir < 0 ? 'Previous' : 'Next'}
-            className="w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center text-charcoal hover:bg-gold hover:text-white hover:border-gold transition-colors disabled:opacity-30 disabled:pointer-events-none"
+            className="p-1.5 text-charcoal/55 hover:text-gold transition-colors disabled:opacity-25 disabled:pointer-events-none"
         >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
                 <path d={dir < 0 ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         </button>
