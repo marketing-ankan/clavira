@@ -104,7 +104,7 @@ export default function CategoryPage() {
                     <>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                             {(products?.data ?? []).map((p, i) => (
-                                <Reveal key={p.id} delay={(i % 4) * 0.05}>
+                                <Reveal key={p.id} delay={(i % 4) * 0.05} variant="zoom">
                                     <ProductCard product={p} />
                                 </Reveal>
                             ))}

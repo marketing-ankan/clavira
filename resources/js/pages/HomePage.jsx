@@ -223,7 +223,7 @@ export default function HomePage() {
                         </Reveal>
                     </div>
                     <Reveal variant="right" className="img-zoom order-1 lg:order-2">
-                        <img src="/images/catalog/p54_00.jpg" alt="NRI collection" loading="lazy" className="w-full h-full object-cover min-h-[300px]" />
+                        <img src="/images/catalog/d2-necklace-12.jpg" alt="NRI collection" loading="lazy" className="w-full h-full object-cover min-h-[300px]" />
                     </Reveal>
                 </div>
             </section>

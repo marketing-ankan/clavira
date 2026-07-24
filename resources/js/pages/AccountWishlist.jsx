@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import ProductCard from '../components/ProductCard';
+import Reveal from '../components/Reveal';
 import { useAccount } from '../account';
 
 export default function AccountWishlist() {
@@ -25,7 +26,11 @@ export default function AccountWishlist() {
                 </p>
             ) : (
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((p) => <ProductCard key={p.id} product={p} />)}
+                    {items.map((p, i) => (
+                        <Reveal key={p.id} delay={(i % 3) * 0.05} variant="zoom">
+                            <ProductCard product={p} />
+                        </Reveal>
+                    ))}
                 </div>
             )}
         </div>

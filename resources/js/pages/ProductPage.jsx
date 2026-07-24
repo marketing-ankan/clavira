@@ -287,8 +287,10 @@ export default function ProductPage() {
                         <h2 className="font-display text-3xl gold-rule">You May Also Admire</h2>
                     </Reveal>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                        {data.related.map((p) => (
-                            <ProductCard key={p.id} product={p} />
+                        {data.related.map((p, i) => (
+                            <Reveal key={p.id} delay={(i % 4) * 0.05} variant="zoom">
+                                <ProductCard product={p} />
+                            </Reveal>
                         ))}
                     </div>
                 </section>
