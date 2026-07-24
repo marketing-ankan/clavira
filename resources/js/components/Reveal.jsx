@@ -10,7 +10,9 @@ const VARIANTS = {
     right: { hidden: { opacity: 0, x: 52 }, show: { opacity: 1, x: 0 } },
 };
 
-export default function Reveal({ children, delay = 0, className = '', variant = 'up', duration = 1 }) {
+// once=false replays the reveal each time the element re-enters the viewport
+// (AOS-style, like pld.live) — cards animate on every scroll pass, not just once.
+export default function Reveal({ children, delay = 0, className = '', variant = 'up', duration = 1, once = false }) {
     const v = VARIANTS[variant] ?? VARIANTS.up;
     return (
         <motion.div
@@ -18,7 +20,7 @@ export default function Reveal({ children, delay = 0, className = '', variant = 
             variants={v}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, margin: '-60px' }}
+            viewport={{ once, margin: '-60px' }}
             transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
         >
             {children}
