@@ -43,6 +43,12 @@ class CatalogController extends Controller
         if ($request->query('jadau') === '1') {
             $query->where('is_jadau', true);
         }
+        if ($metal = $request->query('metal')) {
+            $query->whereHas('variants', fn ($q) => $q->where('metal', $metal));
+        }
+        if ($purity = $request->query('purity')) {
+            $query->whereHas('variants', fn ($q) => $q->where('purity', (int) $purity));
+        }
         if ($min = $request->query('min_price')) {
             $query->where('base_price', '>=', (float) $min);
         }
