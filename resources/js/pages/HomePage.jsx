@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import api from '../api';
 import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
+import FeaturedCarousel from '../components/FeaturedCarousel';
 
 const GOLD_PROMISES = [
     ['BIS Hallmarked', 'Every piece certified by the Bureau of Indian Standards'],
@@ -105,22 +106,8 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ---------- FEATURED ---------- */}
-            <section className="bg-ivory-dark/60 py-20">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <Reveal className="text-center mb-12">
-                        <p className="eyebrow text-gold mb-3">Signature Pieces</p>
-                        <h2 className="font-display text-3xl md:text-4xl gold-rule">Exceptional Stones. Exceptional Settings.</h2>
-                    </Reveal>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                        {(data?.featured ?? []).slice(0, 8).map((p, i) => (
-                            <Reveal key={p.id} delay={i * 0.05} variant="zoom">
-                                <ProductCard product={p} />
-                            </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            {/* ---------- FEATURED (fanned carousel) ---------- */}
+            <FeaturedCarousel products={(data?.featured ?? []).slice(0, 8)} />
 
             {/* ---------- JADAU HERITAGE BAND ---------- */}
             <section className="bg-charcoal text-white overflow-hidden">
