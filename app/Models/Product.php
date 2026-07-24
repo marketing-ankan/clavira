@@ -13,6 +13,9 @@ class Product extends Model
 
     protected $casts = [
         'base_price' => 'float',
+        'metal_value' => 'float',
+        'making_charge' => 'float',
+        'stone_value' => 'float',
         'is_jadau' => 'bool',
         'igi_certified' => 'bool',
         'bis_hallmarked' => 'bool',
