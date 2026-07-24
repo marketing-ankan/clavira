@@ -40,7 +40,7 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
 
                 {/* Right: fanned deck stretching to the far-right edge + controls */}
                 <div>
-                    <div className="relative h-[410px] sm:h-[490px] lg:h-[560px] xl:h-[605px]">
+                    <div className="relative h-[440px] sm:h-[540px] lg:h-[620px] xl:h-[680px]">
                         {products.map((p, i) => {
                             const offset = i - active;
                             return (
