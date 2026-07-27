@@ -22,10 +22,16 @@ export default function ProductCard({ product }) {
                         </span>
                     )}
                     {product.igi_certified && (
-                        <span className="absolute bottom-3 left-3 bg-white/90 text-charcoal text-[10px] uppercase tracking-[0.15em] px-2.5 py-1">
+                        <span className="absolute bottom-3 left-3 bg-white/90 text-charcoal text-[10px] uppercase tracking-[0.15em] px-2.5 py-1 transition-opacity duration-300 group-hover:opacity-0">
                             IGI
                         </span>
                     )}
+                    {/* Hover "Customize" — the product page is the configurator.
+                        Centered via inset-x-0 + mx-auto (not -translate-x-1/2) so the
+                        hover translate-y doesn't clobber the centering transform. */}
+                    <span className="absolute inset-x-0 bottom-5 mx-auto w-fit bg-charcoal text-white text-[10px] uppercase tracking-[0.24em] px-7 py-2.5 whitespace-nowrap shadow-lg opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                        Customize
+                    </span>
                 </div>
                 <div className="pt-4 text-center">
                     <h3 className="font-display text-lg leading-snug group-hover:text-gold transition-colors">
