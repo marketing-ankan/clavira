@@ -15,6 +15,7 @@ import CollectionPage from './pages/CollectionPage';
 import CraftsmanshipPage from './pages/CraftsmanshipPage';
 import NriPage from './pages/NriPage';
 import VerifyPage from './pages/VerifyPage';
+import GoldRatePage from './pages/GoldRatePage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import SearchPage from './pages/SearchPage';
@@ -73,6 +74,7 @@ export default function App() {
                     <Route path="/craftsmanship" element={<CraftsmanshipPage />} />
                     <Route path="/nri" element={<NriPage />} />
                     <Route path="/verify" element={<VerifyPage />} />
+                    <Route path="/gold-rate" element={<GoldRatePage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
                     <Route path="/search" element={<SearchPage />} />

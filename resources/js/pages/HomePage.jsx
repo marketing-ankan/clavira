@@ -6,6 +6,7 @@ import Reveal from '../components/Reveal';
 import TestimonialBand from '../components/TestimonialBand';
 import Counter from '../components/Counter';
 import FeaturedCarousel from '../components/FeaturedCarousel';
+import ExchangeCalculator from '../components/ExchangeCalculator';
 
 const GOLD_PROMISES = [
     ['BIS Hallmarked', 'Every piece certified by the Bureau of Indian Standards'],
@@ -213,6 +214,29 @@ export default function HomePage() {
                             ))}
                         </div>
                     </div>
+                </div>
+            </section>
+
+            {/* ---------- OLD GOLD EXCHANGE ---------- */}
+            <section className="max-w-7xl mx-auto px-4 lg:px-8 pb-24">
+                <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                    <Reveal variant="left">
+                        <p className="eyebrow text-gold mb-3">Zero Deduction</p>
+                        <h2 className="font-display text-3xl md:text-4xl leading-tight">
+                            Your old gold, honestly valued.
+                        </h2>
+                        <p className="mt-5 text-charcoal/65 leading-relaxed max-w-lg">
+                            Exchange it toward a new Clavira creation with no making-charge
+                            deduction on the gold value — measured against the rate we publish
+                            every morning, not one you have to take on trust.
+                        </p>
+                        <Link to="/gold-rate" className="btn-outline mt-8 inline-block">
+                            Today&rsquo;s Gold Rate
+                        </Link>
+                    </Reveal>
+                    <Reveal variant="right">
+                        <ExchangeCalculator rate={data?.gold_rate} />
+                    </Reveal>
                 </div>
             </section>
 

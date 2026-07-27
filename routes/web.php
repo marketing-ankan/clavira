@@ -32,6 +32,7 @@ Route::prefix('api')->group(function () {
     Route::get('/collections/{slug}', [CatalogController::class, 'collection']);
     Route::get('/search', [CatalogController::class, 'search']);
     Route::get('/gold-rate', [CatalogController::class, 'goldRate']);
+    Route::get('/gold-rate/history', [CatalogController::class, 'goldRateHistory']);
 
     Route::get('/cart', [CartController::class, 'show']);
     Route::post('/cart', [CartController::class, 'add']);

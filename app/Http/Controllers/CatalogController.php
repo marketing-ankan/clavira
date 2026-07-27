@@ -147,6 +147,34 @@ class CatalogController extends Controller
         return response()->json(['gold_rate' => GoldRate::latest_rate()]);
     }
 
+    /**
+     * Public rate history for the /gold-rate page. Always returns the full
+     * 30-day window; the page slices it client-side for its 7/14/21/30 toggle
+     * so switching ranges costs no round-trip.
+     */
+    public function goldRateHistory(): JsonResponse
+    {
+        $current = GoldRate::latest_rate();
+        $previous = GoldRate::previousDay();
+
+        $change = null;
+        if ($current && $previous) {
+            $change = [
+                'rate_24k' => round($current->rate_24k - $previous->rate_24k, 2),
+                'rate_22k' => round($current->rate_22k - $previous->rate_22k, 2),
+                'rate_18k' => round($current->rate_18k - $previous->rate_18k, 2),
+                'rate_14k' => round($current->rate_14k - $previous->rate_14k, 2),
+                'since' => ($previous->rate_date ?? $previous->effective_at)->toDateString(),
+            ];
+        }
+
+        return response()->json([
+            'gold_rate' => $current,
+            'change' => $change,
+            'series' => GoldRate::series(30),
+        ]);
+    }
+
     private function card(Product $p): array
     {
         $primary = $p->primaryImage();

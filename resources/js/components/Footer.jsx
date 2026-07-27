@@ -55,6 +55,7 @@ const LINKS = {
     ],
     House: [
         ['Craftsmanship', '/craftsmanship'],
+        ["Today's Gold Rate", '/gold-rate'],
         ['Book a Consultation', '/consultation'],
         ['Repair & Restoration', '/services/repair'],
         ['Verify Certificate', '/verify'],

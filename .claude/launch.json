@@ -1,0 +1,17 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "clavira",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "concurrently",
+                "-k",
+                "--names=server,vite",
+                "php artisan serve --port=8801",
+                "npm run dev"
+            ],
+            "port": 8801
+        }
+    ]
+}
