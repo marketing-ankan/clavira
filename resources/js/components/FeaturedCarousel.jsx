@@ -38,47 +38,46 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
                     </p>
                 </Reveal>
 
-                {/* Right: fanned deck stretching to the far-right edge + controls */}
-                <div>
-                    <div className="relative h-[440px] sm:h-[540px] lg:h-[620px] xl:h-[680px]">
-                        {products.map((p, i) => {
-                            const offset = i - active;
-                            return (
-                                <motion.div
-                                    key={p.id}
-                                    className="absolute top-0 left-0 h-full aspect-[4/5]"
-                                    initial={false}
-                                    animate={POS(offset)}
-                                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                                    style={{ pointerEvents: offset === 0 ? 'auto' : 'none' }}
-                                >
-                                    <BigCard product={p} />
-                                </motion.div>
-                            );
-                        })}
-                    </div>
+                {/* Right: fanned deck stretching to the far-right edge */}
+                <div className="relative h-[440px] sm:h-[540px] lg:h-[620px] xl:h-[680px]">
+                    {products.map((p, i) => {
+                        const offset = i - active;
+                        return (
+                            <motion.div
+                                key={p.id}
+                                className="absolute top-0 left-0 h-full aspect-[4/5]"
+                                initial={false}
+                                animate={POS(offset)}
+                                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                                style={{ pointerEvents: offset === 0 ? 'auto' : 'none' }}
+                            >
+                                <BigCard product={p} />
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </div>
 
-                    <div className="flex flex-col items-center gap-4 mt-8 lg:w-[46%] lg:min-w-[320px]">
-                        <div className="flex items-center gap-5">
-                            <Ctrl dir={-1} onClick={() => go(active - 1)} disabled={active === 0} />
-                            <Ctrl dir={1} onClick={() => go(active + 1)} disabled={active === n - 1} />
-                        </div>
-                        {/* dash pagination */}
-                        <div className="flex items-center gap-2" role="tablist" aria-label="Signature pieces">
-                            {products.map((p, i) => (
-                                <button
-                                    key={p.id}
-                                    onClick={() => go(i)}
-                                    aria-label={`Go to ${p.name}`}
-                                    aria-selected={i === active}
-                                    role="tab"
-                                    className="group py-2"
-                                >
-                                    <span className={`block h-px transition-all duration-500 ${i === active ? 'w-9 bg-gold' : 'w-6 bg-charcoal/25 group-hover:bg-charcoal/50'}`} />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+            {/* Controls — centered under the whole section */}
+            <div className="flex flex-col items-center gap-4 mt-10">
+                <div className="flex items-center gap-5">
+                    <Ctrl dir={-1} onClick={() => go(active - 1)} disabled={active === 0} />
+                    <Ctrl dir={1} onClick={() => go(active + 1)} disabled={active === n - 1} />
+                </div>
+                {/* dash pagination */}
+                <div className="flex items-center gap-2" role="tablist" aria-label="Signature pieces">
+                    {products.map((p, i) => (
+                        <button
+                            key={p.id}
+                            onClick={() => go(i)}
+                            aria-label={`Go to ${p.name}`}
+                            aria-selected={i === active}
+                            role="tab"
+                            className="group py-2"
+                        >
+                            <span className={`block h-px transition-all duration-500 ${i === active ? 'w-9 bg-gold' : 'w-6 bg-charcoal/25 group-hover:bg-charcoal/50'}`} />
+                        </button>
+                    ))}
                 </div>
             </div>
         </section>
