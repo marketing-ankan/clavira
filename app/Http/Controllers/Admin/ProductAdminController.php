@@ -128,6 +128,13 @@ class ProductAdminController extends Controller
             'description' => 'nullable|string|max:2000',
             'story' => 'nullable|string|max:4000',
             'base_price' => 'required|numeric|min:0',
+            // Price-breakup inputs. These existed as columns since the batch-2
+            // migration but were missing here, so the admin API silently dropped
+            // every write — which is why they were null on 92 of 93 products.
+            'metal_value' => 'nullable|numeric|min:0',
+            'making_charge' => 'nullable|numeric|min:0',
+            'stone_value' => 'nullable|numeric|min:0',
+            'gross_weight_g' => 'nullable|numeric|min:0',
             'diamond_type' => 'required|in:lab_grown,natural,polki,none',
             'diamond_quality' => 'nullable|string|max:60',
             'default_metal' => 'required|in:yellow,white,rose',

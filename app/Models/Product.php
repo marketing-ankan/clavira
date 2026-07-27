@@ -16,6 +16,7 @@ class Product extends Model
         'metal_value' => 'float',
         'making_charge' => 'float',
         'stone_value' => 'float',
+        'gross_weight_g' => 'float',
         'is_jadau' => 'bool',
         'igi_certified' => 'bool',
         'bis_hallmarked' => 'bool',

@@ -100,6 +100,9 @@ class CatalogController extends Controller
         return response()->json([
             'product' => $product,
             'related' => $related,
+            // Lets the PDP price breakup value the gold at today's published
+            // rate instead of a figure frozen at seed time.
+            'gold_rate' => GoldRate::latest_rate(),
             'certificate' => $certificate?->only(['certificate_no', 'type']),
             'rating' => [
                 'count' => (clone $approved)->count(),

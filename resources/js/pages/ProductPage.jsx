@@ -161,7 +161,14 @@ export default function ProductPage() {
 
                     <PriceBreakup
                         price={price}
-                        components={{ metal_value: product.metal_value, making_charge: product.making_charge, stone_value: product.stone_value }}
+                        components={{
+                            metal_value: product.metal_value,
+                            making_charge: product.making_charge,
+                            stone_value: product.stone_value,
+                            gross_weight_g: product.gross_weight_g,
+                        }}
+                        goldRate={data.gold_rate}
+                        purity={purity}
                     />
 
                     <CertificateViewer certificate={data.certificate} product={product} />

@@ -6,7 +6,8 @@ import { Card, Field, Money, inputCls } from './ui';
 
 const EMPTY = {
     category_id: '', name: '', sku: '', description: '', story: '',
-    base_price: '', diamond_type: 'lab_grown', diamond_quality: 'VVS · E–F',
+    base_price: '', gross_weight_g: '', making_charge: '', metal_value: '', stone_value: '',
+    diamond_type: 'lab_grown', diamond_quality: 'VVS · E–F',
     default_metal: 'yellow', default_purity: 18,
     is_jadau: false, igi_certified: true, bis_hallmarked: true, featured: false, active: true,
 };
@@ -116,6 +117,14 @@ export default function ProductEdit() {
                     </Field>
                     <Field label="SKU (blank = auto)"><input value={form.sku ?? ''} onChange={set('sku')} className={inputCls} /></Field>
                     <Field label="Base price (INR)"><input required type="number" min="0" step="1" value={form.base_price} onChange={set('base_price')} className={inputCls} /></Field>
+                    {/* Price-breakup inputs. Gold weight drives the live gold
+                        value on the PDP; leave blank to fall back to the stored
+                        composition. Making charge is used as-is; the stone is
+                        the remainder, so the breakup always sums to the price. */}
+                    <Field label="Gold weight (grams)"><input type="number" min="0" step="0.001" value={form.gross_weight_g ?? ''} onChange={set('gross_weight_g')} className={inputCls} /></Field>
+                    <Field label="Making charge (INR)"><input type="number" min="0" step="1" value={form.making_charge ?? ''} onChange={set('making_charge')} className={inputCls} /></Field>
+                    <Field label="Metal value (INR, optional)"><input type="number" min="0" step="1" value={form.metal_value ?? ''} onChange={set('metal_value')} className={inputCls} /></Field>
+                    <Field label="Stone value (INR, optional)"><input type="number" min="0" step="1" value={form.stone_value ?? ''} onChange={set('stone_value')} className={inputCls} /></Field>
                     <Field label="Diamond type">
                         <select value={form.diamond_type} onChange={set('diamond_type')} className={inputCls}>
                             {Object.entries(diamondLabel).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
