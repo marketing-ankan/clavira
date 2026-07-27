@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api';
 import ProductCard from '../components/ProductCard';
+import Reveal from '../components/Reveal';
 
 export default function SearchPage() {
     const [params] = useSearchParams();
@@ -25,7 +26,11 @@ export default function SearchPage() {
                 {loading ? 'Searching…' : `${products.length} result${products.length === 1 ? '' : 's'} for “${q}”`}
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                {products.map((p) => <ProductCard key={p.id} product={p} />)}
+                {products.map((p, i) => (
+                    <Reveal key={p.id} delay={(i % 4) * 0.05} variant="zoom">
+                        <ProductCard product={p} />
+                    </Reveal>
+                ))}
             </div>
             {!loading && products.length === 0 && (
                 <p className="text-center py-16 font-display text-xl text-charcoal/50">

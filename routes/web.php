@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EnquiryAdminController;
 use App\Http\Controllers\Admin\OrderAdminController;
 use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\RepairAdminController;
 use App\Http\Controllers\Admin\ReviewAdminController;
 use App\Http\Controllers\Admin\SettingsAdminController;
 use App\Http\Controllers\AccountController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\RepairController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +49,7 @@ Route::prefix('api')->group(function () {
     Route::get('/products/{slug}/reviews', [ReviewController::class, 'index']);
     Route::post('/products/{slug}/reviews', [ReviewController::class, 'store'])->middleware('throttle:10,1');
     Route::post('/consultations', [ConsultationController::class, 'store'])->middleware('throttle:10,1');
+    Route::post('/repairs', [RepairController::class, 'store'])->middleware('throttle:6,1');
     Route::post('/newsletter', [NewsletterController::class, 'subscribe'])->middleware('throttle:10,1');
 
     // ---- Wishlist (works for guests via session, merges on login) ----
@@ -115,6 +118,8 @@ Route::prefix('api')->group(function () {
             Route::delete('/reviews/{review}', [ReviewAdminController::class, 'destroy']);
             Route::get('/consultations', [ConsultationAdminController::class, 'index']);
             Route::patch('/consultations/{consultation}/status', [ConsultationAdminController::class, 'updateStatus']);
+            Route::get('/repairs', [RepairAdminController::class, 'index']);
+            Route::patch('/repairs/{repair}/status', [RepairAdminController::class, 'updateStatus']);
         });
     });
 });

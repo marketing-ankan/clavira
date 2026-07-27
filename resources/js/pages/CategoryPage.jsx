@@ -26,15 +26,31 @@ export default function CategoryPage() {
 
     const sort = params.get('sort') ?? 'featured';
     const diamond = params.get('diamond_type') ?? '';
+    const jadau = params.get('jadau') ?? '';
+    const metal = params.get('metal') ?? '';
+    const purity = params.get('purity') ?? '';
+    const minPrice = params.get('min_price') ?? '';
+    const maxPrice = params.get('max_price') ?? '';
     const page = params.get('page') ?? '1';
 
     useEffect(() => {
         setLoading(true);
-        api.get(`/categories/${slug}`, { params: { sort, diamond_type: diamond || undefined, page } })
+        api.get(`/categories/${slug}`, {
+            params: {
+                sort,
+                diamond_type: diamond || undefined,
+                jadau: jadau || undefined,
+                metal: metal || undefined,
+                purity: purity || undefined,
+                min_price: minPrice || undefined,
+                max_price: maxPrice || undefined,
+                page,
+            },
+        })
             .then(({ data }) => setData(data))
             .finally(() => setLoading(false));
         window.scrollTo(0, 0);
-    }, [slug, sort, diamond, page]);
+    }, [slug, sort, diamond, jadau, metal, purity, minPrice, maxPrice, page]);
 
     const setParam = (key, value) => {
         const next = new URLSearchParams(params);
@@ -104,7 +120,7 @@ export default function CategoryPage() {
                     <>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                             {(products?.data ?? []).map((p, i) => (
-                                <Reveal key={p.id} delay={(i % 4) * 0.05}>
+                                <Reveal key={p.id} delay={(i % 4) * 0.05} variant="zoom">
                                     <ProductCard product={p} />
                                 </Reveal>
                             ))}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ class ReviewController extends Controller
 
         $approved = Review::where('product_id', $product->id)->where('status', 'approved')->latest();
 
-        $all = (clone $approved)->get(['id', 'name', 'rating', 'title', 'body', 'created_at']);
+        $all = (clone $approved)->get(['id', 'name', 'rating', 'title', 'body', 'verified', 'created_at']);
 
         return response()->json([
             'reviews' => $all,
@@ -45,8 +46,18 @@ class ReviewController extends Controller
             'product_id' => $product->id,
             'user_id' => $request->user()?->id,
             'status' => 'pending',
+            'verified' => $this->hasPurchased($data['email'], $product->id),
         ]);
 
         return response()->json(['ok' => true, 'message' => 'Thank you — your review will appear once approved by our team.'], 201);
+    }
+
+    /** True when this email has a real (paid onward) order containing the product. */
+    private function hasPurchased(string $email, int $productId): bool
+    {
+        return Order::where('email', $email)
+            ->whereIn('status', ['paid', 'processing', 'shipped', 'delivered'])
+            ->whereHas('items', fn ($q) => $q->where('product_id', $productId))
+            ->exists();
     }
 }

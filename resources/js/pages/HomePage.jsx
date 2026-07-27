@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import api from '../api';
 import Reveal from '../components/Reveal';
-import ProductCard from '../components/ProductCard';
 import TestimonialBand from '../components/TestimonialBand';
 import Counter from '../components/Counter';
+import FeaturedCarousel from '../components/FeaturedCarousel';
 
 const GOLD_PROMISES = [
     ['BIS Hallmarked', 'Every piece certified by the Bureau of Indian Standards'],
@@ -27,32 +27,6 @@ const STATS = [
     { value: 0, suffix: '', label: 'Making-charge deductions' },
     { value: 50, suffix: '+', label: 'Countries shipped, insured' },
 ];
-
-const TRUST_BADGES = [
-    ['BIS', 'Hallmarked Gold'],
-    ['IGI', 'Certified Diamonds'],
-    ['∞', 'Lifetime Exchange'],
-    ['✈', 'Insured Worldwide'],
-];
-
-/** Slight vertical drift as a band scrolls through the viewport. */
-function ParallaxImg({ src, alt, className = '' }) {
-    const ref = useRef(null);
-    const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-    const y = useTransform(scrollYProgress, [0, 1], ['-6%', '6%']);
-
-    return (
-        <div ref={ref} className={`overflow-hidden ${className}`}>
-            <motion.img
-                src={src}
-                alt={alt}
-                loading="lazy"
-                style={{ y }}
-                className="w-full h-[112%] object-cover scale-[1.08]"
-            />
-        </div>
-    );
-}
 
 const heroLine = {
     hidden: { y: '110%' },
@@ -130,17 +104,8 @@ export default function HomePage() {
                 </motion.div>
             </section>
 
-            {/* ---------- TRUST STRIP ---------- */}
-            <section className="border-b border-gold/15 bg-ivory">
-                <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4">
-                    {TRUST_BADGES.map(([mark, label], i) => (
-                        <Reveal key={label} delay={i * 0.07} className="flex items-center justify-center gap-3 py-6 md:py-7">
-                            <span className="font-display text-xl md:text-2xl text-gold leading-none">{mark}</span>
-                            <span className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-charcoal/60">{label}</span>
-                        </Reveal>
-                    ))}
-                </div>
-            </section>
+            {/* Trust signals live in the site-wide <TrustBar /> (mounted in App.jsx
+                above the footer) — the homepage no longer repeats them here. */}
 
             {/* ---------- CATEGORIES ---------- */}
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-24">
@@ -150,7 +115,7 @@ export default function HomePage() {
                 </Reveal>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {(data?.categories ?? []).map((cat, i) => (
-                        <Reveal key={cat.id} delay={i * 0.06}>
+                        <Reveal key={cat.id} delay={i * 0.06} variant="zoom">
                             <Link to={`/category/${cat.slug}`} className="group block relative img-zoom card-lift aspect-[4/5] bg-ivory-dark">
                                 {cat.hero_image && (
                                     <img src={`/${cat.hero_image}`} alt={cat.name} loading="lazy" className="w-full h-full object-cover" />
@@ -166,7 +131,7 @@ export default function HomePage() {
                         </Reveal>
                     ))}
                     {/* Craftsmanship tile completes the grid */}
-                    <Reveal delay={0.42}>
+                    <Reveal delay={0.42} variant="zoom">
                         <Link to="/craftsmanship" className="group block relative img-zoom card-lift aspect-[4/5] bg-charcoal">
                             <img src="/images/catalog/p49_00.jpg" alt="Clavira craftsmanship" loading="lazy" className="w-full h-full object-cover opacity-80" />
                             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-transparent to-transparent" />
@@ -181,29 +146,17 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ---------- FEATURED ---------- */}
-            <section className="bg-ivory-dark/60 py-24">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <Reveal className="text-center mb-14">
-                        <p className="eyebrow text-gold mb-3">Signature Pieces</p>
-                        <h2 className="font-display text-3xl md:text-5xl gold-rule">Exceptional Stones. Exceptional Settings.</h2>
-                    </Reveal>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                        {(data?.featured ?? []).slice(0, 8).map((p, i) => (
-                            <Reveal key={p.id} delay={i * 0.05}>
-                                <ProductCard product={p} />
-                            </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            {/* ---------- FEATURED (fanned carousel) ---------- */}
+            <FeaturedCarousel products={(data?.featured ?? []).slice(0, 8)} />
 
-            {/* ---------- JADAU HERITAGE BAND (parallax) ---------- */}
+            {/* ---------- JADAU HERITAGE BAND ---------- */}
             <section className="bg-charcoal text-white overflow-hidden">
                 <div className="max-w-7xl mx-auto grid lg:grid-cols-2">
-                    <ParallaxImg src="/images/catalog/p42_01.jpg" alt="Jadau Kundan craftsmanship" className="min-h-[320px]" />
+                    <Reveal variant="left" className="img-zoom">
+                        <img src="/images/catalog/p42_01.jpg" alt="Jadau Kundan craftsmanship" loading="lazy" className="w-full h-full object-cover min-h-[320px]" />
+                    </Reveal>
                     <div className="flex flex-col justify-center p-10 lg:p-20">
-                        <Reveal>
+                        <Reveal variant="right">
                             <p className="eyebrow text-gold-light mb-4">Jadau Kundan</p>
                             <h2 className="font-display text-3xl md:text-5xl leading-tight">Jadau — Reimagined</h2>
                             <p className="mt-6 text-white/70 leading-relaxed max-w-lg">
@@ -242,7 +195,7 @@ export default function HomePage() {
                         <h3 className="font-display text-2xl text-center mb-8">The Gold Promise</h3>
                         <div className="grid grid-cols-2 gap-5">
                             {GOLD_PROMISES.map(([title, desc], i) => (
-                                <Reveal key={title} delay={i * 0.05} className="border border-gold/30 p-6 text-center">
+                                <Reveal key={title} delay={i * 0.05} variant="zoom" className="border border-gold/30 p-6 text-center">
                                     <p className="font-display text-xl text-gold">{title}</p>
                                     <p className="text-xs text-charcoal/60 mt-2 leading-relaxed">{desc}</p>
                                 </Reveal>
@@ -253,7 +206,7 @@ export default function HomePage() {
                         <h3 className="font-display text-2xl text-center mb-8">The Diamond Promise</h3>
                         <div className="grid grid-cols-2 gap-5">
                             {DIAMOND_PROMISES.map(([title, desc], i) => (
-                                <Reveal key={title} delay={i * 0.05} className="border border-gold/30 p-6 text-center bg-charcoal text-white">
+                                <Reveal key={title} delay={i * 0.05} variant="zoom" className="border border-gold/30 p-6 text-center bg-charcoal text-white">
                                     <p className="font-display text-xl text-gold-light">{title}</p>
                                     <p className="text-xs text-white/60 mt-2 leading-relaxed">{desc}</p>
                                 </Reveal>
@@ -297,11 +250,11 @@ export default function HomePage() {
             {/* ---------- CUSTOMER WORDS ---------- */}
             <TestimonialBand testimonials={data?.testimonials} />
 
-            {/* ---------- NRI BAND (parallax) ---------- */}
+            {/* ---------- NRI BAND ---------- */}
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-24">
                 <div className="grid lg:grid-cols-2 bg-charcoal text-white overflow-hidden">
                     <div className="flex flex-col justify-center p-10 lg:p-16 order-2 lg:order-1">
-                        <Reveal>
+                        <Reveal variant="left">
                             <p className="eyebrow text-gold-light mb-4">NRI Collection</p>
                             <h2 className="font-display text-3xl md:text-4xl leading-tight">Carrying India, Wherever You Are</h2>
                             <ul className="mt-6 space-y-3 text-white/70 text-sm leading-relaxed">
@@ -312,7 +265,9 @@ export default function HomePage() {
                             <Link to="/nri" className="btn-dark-outline mt-8 self-start">Explore NRI Fusion</Link>
                         </Reveal>
                     </div>
-                    <ParallaxImg src="/images/catalog/p54_00.jpg" alt="NRI collection" className="min-h-[300px] order-1 lg:order-2" />
+                    <Reveal variant="right" className="img-zoom order-1 lg:order-2">
+                        <img src="/images/catalog/d2-necklace-12.jpg" alt="NRI collection" loading="lazy" className="w-full h-full object-cover min-h-[300px]" />
+                    </Reveal>
                 </div>
             </section>
         </main>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,24 +9,74 @@ import { useAccount } from '../account';
 import Logo from './Logo';
 
 const NAV = [
-    { to: '/category/rings', label: 'Rings' },
-    { to: '/category/earrings', label: 'Earrings' },
-    { to: '/category/bracelets', label: 'Bracelets' },
-    { to: '/category/bangles', label: 'Bangles' },
-    { to: '/category/necklaces', label: 'Necklaces' },
-    { to: '/category/pendants', label: 'Pendants' },
-    { to: '/category/pendant-sets', label: 'Pendant Sets' },
+    { to: '/category/rings', label: 'Rings', cat: 'rings' },
+    { to: '/category/earrings', label: 'Earrings', cat: 'earrings' },
+    { to: '/category/bracelets', label: 'Bracelets', cat: 'bracelets' },
+    { to: '/category/bangles', label: 'Bangles', cat: 'bangles' },
+    { to: '/category/necklaces', label: 'Necklaces', cat: 'necklaces' },
+    { to: '/category/pendants', label: 'Pendants', cat: 'pendants' },
+    { to: '/category/pendant-sets', label: 'Pendant Sets', cat: 'pendant-sets' },
     { to: '/collections', label: 'The Edits', accent: true },
 ];
+
+// Mega-menu (Angara-style): hovering a category drops a panel of ways to shop
+// it. Links carry query params CategoryPage/CatalogController already honour
+// (diamond_type · jadau · metal · purity · min/max_price · sort).
+const DIAMOND_OPTS = [
+    ['Lab-Grown Diamond', 'diamond_type=lab_grown', '#cfe3ea'],
+    ['Natural Diamond', 'diamond_type=natural', '#e7dcf0'],
+    ['Uncut Polki', 'diamond_type=polki', '#efe0c8'],
+    ['Pure Gold', 'diamond_type=none', '#e9d9b0'],
+];
+const PRICE_OPTS = [
+    ['Under ₹50,000', 'max_price=50000'],
+    ['₹50,000 – ₹1,00,000', 'min_price=50000&max_price=100000'],
+    ['₹1,00,000 – ₹2,00,000', 'min_price=100000&max_price=200000'],
+    ['Above ₹2,00,000', 'min_price=200000'],
+];
+const METAL_OPTS = [
+    ['22kt Gold', 'purity=22', '#d9b36c'],
+    ['18kt Gold', 'purity=18', '#d9b36c'],
+    ['14kt Gold', 'purity=14', '#d9b36c'],
+    ['Yellow Gold', 'metal=yellow', '#d9b36c'],
+    ['White Gold', 'metal=white', '#dcdcdc'],
+    ['Rose Gold', 'metal=rose', '#dda583'],
+];
+
+function megaColumns(cat, label) {
+    const base = `/category/${cat}`;
+    return [
+        {
+            title: `Shop ${label}`,
+            links: [
+                [`All ${label}`, ''],
+                ['New Arrivals', '?sort=newest'],
+                ['Best Sellers', '?sort=featured'],
+                ['Jadau & Kundan', '?jadau=1'],
+            ].map(([l, qs]) => ({ label: l, to: base + qs })),
+        },
+        { title: 'By Diamond', links: DIAMOND_OPTS.map(([l, qs, dot]) => ({ label: l, to: `${base}?${qs}`, dot })) },
+        { title: 'By Price', links: PRICE_OPTS.map(([l, qs]) => ({ label: l, to: `${base}?${qs}` })) },
+        { title: 'By Metal & Purity', links: METAL_OPTS.map(([l, qs, dot]) => ({ label: l, to: `${base}?${qs}`, dot })) },
+    ];
+}
 
 export default function Header() {
     const [rate, setRate] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    const [mega, setMega] = useState(null);
     const [q, setQ] = useState('');
     const { count, setDrawerOpen } = useCart();
     const { user, wishlistCount } = useAccount();
     const navigate = useNavigate();
+
+    // Mega-menu open/close with a short close delay so moving from the nav item
+    // to the panel (crossing the seam) doesn't dismiss it.
+    const closeTimer = useRef();
+    const openMega = (key) => { clearTimeout(closeTimer.current); setMega(key); };
+    const scheduleClose = () => { closeTimer.current = setTimeout(() => setMega(null), 140); };
+    const megaCat = NAV.find((n) => n.cat === mega);
 
     useEffect(() => {
         api.get('/gold-rate').then(({ data }) => setRate(data.gold_rate)).catch(() => {});
@@ -139,14 +189,16 @@ export default function Header() {
                 </div>
 
                 {/* Desktop nav */}
-                <nav className="hidden lg:flex justify-center gap-8 pb-4" aria-label="Primary">
+                <nav className="hidden lg:flex justify-center gap-8 pb-4" aria-label="Primary" onMouseLeave={scheduleClose}>
                     {NAV.map((item) => (
                         <NavLink
                             key={item.to}
                             to={item.to}
+                            onMouseEnter={() => openMega(item.cat ?? null)}
+                            onClick={() => setMega(null)}
                             className={({ isActive }) =>
                                 `text-[12px] uppercase tracking-[0.22em] pb-1 border-b transition-colors duration-300 ${
-                                    isActive
+                                    isActive || mega === item.cat
                                         ? 'text-gold border-gold'
                                         : `border-transparent hover:text-gold ${item.accent ? 'text-gold' : 'text-charcoal'}`
                                 }`
@@ -157,6 +209,59 @@ export default function Header() {
                     ))}
                 </nav>
             </div>
+
+            {/* Mega-menu panel */}
+            <AnimatePresence>
+                {megaCat && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                        className="absolute inset-x-0 top-full hidden lg:block bg-ivory border-b border-gold/20 shadow-xl"
+                        onMouseEnter={() => clearTimeout(closeTimer.current)}
+                        onMouseLeave={scheduleClose}
+                    >
+                        <div className="max-w-7xl mx-auto px-8 py-9 grid grid-cols-5 gap-8">
+                            {megaColumns(megaCat.cat, megaCat.label).map((col) => (
+                                <div key={col.title}>
+                                    <p className="eyebrow text-gold mb-4 !text-[10px]">{col.title}</p>
+                                    <ul className="space-y-2.5">
+                                        {col.links.map((l) => (
+                                            <li key={l.label}>
+                                                <Link
+                                                    to={l.to}
+                                                    onClick={() => setMega(null)}
+                                                    className="group flex items-center gap-2.5 text-sm text-charcoal/70 hover:text-gold transition-colors"
+                                                >
+                                                    {l.dot && <span className="w-3 h-3 rounded-full border border-charcoal/10 shrink-0" style={{ background: l.dot }} />}
+                                                    {l.label}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                            {/* Featured promo tile */}
+                            <Link
+                                to="/collections"
+                                onClick={() => setMega(null)}
+                                className="relative bg-charcoal text-white p-6 flex flex-col justify-end overflow-hidden group min-h-[220px]"
+                            >
+                                <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_100%_0%,rgba(176,141,87,0.5),transparent_60%)]" />
+                                <div className="relative">
+                                    <p className="eyebrow text-gold-light mb-2 !text-[10px]">Curated</p>
+                                    <p className="font-display text-2xl leading-tight">The Clavira Edits</p>
+                                    <p className="text-[11px] text-white/60 mt-2">Bridal, Heritage Kundan, Solitaire &amp; more</p>
+                                    <span className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.18em] text-gold-light mt-4 group-hover:gap-2 transition-all">
+                                        Explore <span>→</span>
+                                    </span>
+                                </div>
+                            </Link>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Search overlay */}
             <AnimatePresence>

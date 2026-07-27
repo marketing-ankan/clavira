@@ -8,6 +8,11 @@ import ProductReviews from '../components/ProductReviews';
 import Stars from '../components/Stars';
 import ProductCard from '../components/ProductCard';
 import Reveal from '../components/Reveal';
+import PriceBreakup from '../components/PriceBreakup';
+import CertificateViewer from '../components/CertificateViewer';
+import GuideModal from '../components/GuideModal';
+
+const DIAMOND_TINT = { lab_grown: '#eaf2f5', natural: '#f3eef7', polki: '#f5ede1', none: '#f3ecdd' };
 
 const RING_SIZES = ['6', '8', '10', '12', '14', '16', '18'];
 const METAL_SWATCH = { yellow: '#d9b36c', white: '#dcdcdc', rose: '#dda583' };
@@ -22,6 +27,7 @@ export default function ProductPage() {
     const [size, setSize] = useState('');
     const [openSection, setOpenSection] = useState('description');
     const [adding, setAdding] = useState(false);
+    const [guide, setGuide] = useState(null);
     const cartApi = useCart();
 
     useEffect(() => {
@@ -153,15 +159,23 @@ export default function ProductPage() {
                         Inclusive of all certifications · GST additional at checkout
                     </p>
 
+                    <PriceBreakup
+                        price={price}
+                        components={{ metal_value: product.metal_value, making_charge: product.making_charge, stone_value: product.stone_value }}
+                    />
+
+                    <CertificateViewer certificate={data.certificate} product={product} />
+
                     {/* Configurator */}
                     <div className="mt-8 space-y-6">
                         {metals.length > 1 && (
-                            <Option label={`Metal — ${metalLabel[metal]}`}>
+                            <Option label={`Metal — ${metalLabel[metal]}`} guide="metal" onGuide={setGuide}>
                                 {metals.map((m) => (
                                     <button
                                         key={m}
                                         onClick={() => setMetal(m)}
                                         aria-label={metalLabel[m]}
+                                        title={metalLabel[m]}
                                         className={`w-9 h-9 rounded-full border-2 transition-transform ${metal === m ? 'border-gold scale-110' : 'border-charcoal/20'}`}
                                         style={{ background: METAL_SWATCH[m] }}
                                     />
@@ -170,7 +184,7 @@ export default function ProductPage() {
                         )}
 
                         {purities.length > 1 && (
-                            <Option label="Gold Purity">
+                            <Option label="Gold Purity" guide="metal" onGuide={setGuide}>
                                 {purities.map((p) => (
                                     <Pill key={p} active={purity === p} onClick={() => setPurity(p)}>{p}kt</Pill>
                                 ))}
@@ -178,17 +192,28 @@ export default function ProductPage() {
                         )}
 
                         {diamonds.length > 1 && (
-                            <Option label="Diamond">
+                            <Option label="Diamond" guide="diamond" onGuide={setGuide}>
                                 {diamonds.map((d) => (
-                                    <Pill key={d} active={diamond === d} onClick={() => setDiamond(d)}>
-                                        {diamondLabel[d]}
-                                    </Pill>
+                                    <button
+                                        key={d}
+                                        onClick={() => setDiamond(d)}
+                                        className={`flex items-center gap-2.5 border px-3 py-2 transition-colors ${
+                                            diamond === d ? 'border-gold bg-gold-pale/50' : 'border-gold/30 hover:border-gold'
+                                        }`}
+                                    >
+                                        <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: DIAMOND_TINT[d] }}>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a6d3f" strokeWidth="1.3">
+                                                <path d="M6 3h12l3 6-9 12L3 9l3-6zM3 9h18M9 3l3 18M15 3l-3 18" />
+                                            </svg>
+                                        </span>
+                                        <span className="text-[12px] leading-tight text-left">{diamondLabel[d]}</span>
+                                    </button>
                                 ))}
                             </Option>
                         )}
 
                         {isRing && (
-                            <Option label="Ring Size (Indian)">
+                            <Option label="Ring Size (Indian)" guide="size" onGuide={setGuide}>
                                 {RING_SIZES.map((s) => (
                                     <Pill key={s} active={size === s} onClick={() => setSize(s)}>{s}</Pill>
                                 ))}
@@ -262,14 +287,18 @@ export default function ProductPage() {
                         <h2 className="font-display text-3xl gold-rule">You May Also Admire</h2>
                     </Reveal>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                        {data.related.map((p) => (
-                            <ProductCard key={p.id} product={p} />
+                        {data.related.map((p, i) => (
+                            <Reveal key={p.id} delay={(i % 4) * 0.05} variant="zoom">
+                                <ProductCard product={p} />
+                            </Reveal>
                         ))}
                     </div>
                 </section>
             )}
 
             <ProductReviews slug={product.slug} />
+
+            <GuideModal guide={guide} onClose={() => setGuide(null)} />
         </main>
     );
 }
@@ -282,10 +311,23 @@ function Badge({ children, dark = false }) {
     );
 }
 
-function Option({ label, children }) {
+function Option({ label, children, guide, onGuide }) {
     return (
         <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-charcoal/60 mb-3">{label}</p>
+            <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-charcoal/60">{label}</p>
+                {guide && (
+                    <button
+                        onClick={() => onGuide(guide)}
+                        className="flex items-center gap-1 text-[11px] text-gold hover:text-charcoal transition-colors"
+                    >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                            <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
+                        </svg>
+                        Guide
+                    </button>
+                )}
+            </div>
             <div className="flex flex-wrap gap-2">{children}</div>
         </div>
     );

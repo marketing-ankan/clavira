@@ -21,7 +21,7 @@ export default function NriPage() {
     return (
         <main>
             <section className="relative min-h-[70vh] flex items-center justify-center bg-charcoal overflow-hidden">
-                <img src="/images/catalog/p54_00.jpg" alt="NRI collection" className="absolute inset-0 w-full h-full object-cover object-top opacity-50" />
+                <img src="/images/catalog/d2-necklace-12.jpg" alt="NRI collection" className="absolute inset-0 w-full h-full object-cover object-top opacity-50" />
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-charcoal/50" />
                 <div className="relative text-center text-white px-4 py-24 max-w-2xl">
                     <p className="eyebrow text-gold-light mb-4">NRI Collection</p>
@@ -51,7 +51,7 @@ export default function NriPage() {
                 </Reveal>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                     {(data?.products ?? []).map((p, i) => (
-                        <Reveal key={p.id} delay={(i % 4) * 0.05}>
+                        <Reveal key={p.id} delay={(i % 4) * 0.05} variant="zoom">
                             <ProductCard product={p} />
                         </Reveal>
                     ))}
