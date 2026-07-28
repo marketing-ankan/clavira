@@ -14,6 +14,10 @@
     --color-gold-light: #d4b98c;
     --color-gold-pale: #efe6d5;
     --color-maroon: #5d1f24;
+    /* Readable gold for body-size text. Brand gold on ivory is only 2.9:1 —
+       below the 4.5:1 WCAG needs — so prices and small print use this darker
+       cousin while borders, rules and hover fills keep the brand gold. */
+    --color-gold-ink: #7a5f34;
 
     --font-display: 'Cormorant Garamond', Georgia, serif;
     --font-body: 'Jost', 'Segoe UI', sans-serif;
@@ -32,6 +36,7 @@ html[data-palette='emerald'] {
     --color-gold-light: #d3bc8a;
     --color-gold-pale: #eae4d1;
     --color-maroon: #145243;
+    --color-gold-ink: #6f5c32;
 }
 
 /* Palette C "Bordeaux Maison" — oxblood depths with rose-champagne golds. */
@@ -44,6 +49,7 @@ html[data-palette='bordeaux'] {
     --color-gold-light: #dcb891;
     --color-gold-pale: #f0e2d3;
     --color-maroon: #77222e;
+    --color-gold-ink: #82603c;
 }
 
 html {
@@ -138,10 +144,14 @@ body {
 }
 .btn-dark-outline:hover { background: #fff; color: var(--color-charcoal); }
 
-/* Product image hover zoom */
+/* Product image hover zoom.
+   Gated on a real pointer: WebKit synthesises :hover on tap and keeps it until
+   you tap elsewhere, which left tapped cards stuck zoomed-and-lifted on iOS. */
 .img-zoom { overflow: hidden; }
 .img-zoom img { transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
-.img-zoom:hover img { transform: scale(1.06); }
+@media (hover: hover) and (pointer: fine) {
+    .img-zoom:hover img { transform: scale(1.06); }
+}
 
 /* ---- Tier-1 cinematic utilities ---- */
 
@@ -168,19 +178,91 @@ body {
 .card-lift {
     transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.7s ease;
 }
-.card-lift:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 24px 48px -18px rgba(26, 23, 20, 0.28);
+@media (hover: hover) and (pointer: fine) {
+    .card-lift:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 24px 48px -18px rgba(26, 23, 20, 0.28);
+    }
 }
 
-/* Crossfade pair inside a card (second image fades in on hover) */
-.crossfade-alt {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+/* ---- Product card tile ----------------------------------------------------
+   A white tile on the ivory page with a hairline gold edge that warms on
+   hover, a hover-revealed action rail, and an outline CTA that fills gold
+   with the card. All motion is transform/opacity so a 24-card grid stays on
+   the compositor.
+
+   The rule that keeps this working on every device:
+     · hover reveal             → inside the pointer gate
+     · keyboard (:focus-within) → OUTSIDE the gate, so it works everywhere
+     · rest state               → the plain default, so touch needs no query  */
+
+.pc-tile {
+    transition: border-color 0.5s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.7s ease;
 }
-.group:hover .crossfade-alt { opacity: 1; }
+
+/* Rail: hidden, inert and nudged right until the card is engaged.
+   pointer-events:none is load-bearing — invisible buttons sitting over every
+   photo would otherwise swallow taps meant for the product link. */
+.pc-rail > * {
+    opacity: 0;
+    transform: translateX(10px);
+    pointer-events: none;
+    transition: opacity 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pc-rail > :nth-child(2) { transition-delay: 70ms; }
+
+@media (hover: hover) and (pointer: fine) {
+    .pc:hover .pc-rail > * { opacity: 1; transform: none; pointer-events: auto; }
+}
+
+/* Keyboard reveal — outside the pointer gate on purpose, and without the
+   stagger, which reads as lag once you are already tabbing through. */
+.pc:focus-within .pc-rail > * {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition-delay: 0ms;
+}
+
+/* Touch rest state. The heart stays visible — it is visible today, and hiding
+   it behind a hover that never fires would delete a working feature for most
+   of the traffic. The quick-view eye stands down instead: tapping the tile
+   already opens the full product page, which is a superset of quick view. */
+@media (hover: none), (pointer: coarse) {
+    .pc-rail > * { opacity: 1; transform: none; pointer-events: auto; }
+    .pc-quickview { display: none; }
+}
+
+/* "Quick view" pill — unrolls leftward out of the eye button. */
+.pc-tip {
+    opacity: 0;
+    transform: translateX(6px);
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+    .pc-quickview:hover .pc-tip { opacity: 1; transform: none; }
+}
+.pc-quickview:focus-visible .pc-tip { opacity: 1; transform: none; }
+
+/* CTA — outline at rest, gold fill arrives with the card hover (the
+   reference's signature move), charcoal on direct button hover. */
+.pc-cta {
+    border: 1px solid var(--color-gold);
+    color: var(--color-gold);
+    background: transparent;
+    transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+    .pc:hover .pc-cta { background: var(--color-gold); color: #fff; }
+    .pc-cta:hover {
+        background: var(--color-charcoal);
+        border-color: var(--color-charcoal);
+        color: #fff;
+    }
+}
 
 /* Scroll cue: slow falling hairline */
 @keyframes scroll-cue {
@@ -196,9 +278,30 @@ body {
     animation: scroll-cue 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
-/* Reduced-motion: quiet everything continuous */
+/* Reduced-motion: quiet everything continuous, and strip the *movement* from
+   the card while keeping the colour/opacity cues that carry meaning. */
 @media (prefers-reduced-motion: reduce) {
     .ken-burns, .scroll-cue, .ticker-track { animation: none; }
+
+    html { scroll-behavior: auto; }
+
+    /* Card lift: drop the travel, keep the shadow as the hover cue. */
+    .card-lift { transition: box-shadow 0.15s ease; }
+    .card-lift:hover {
+        transform: none;
+        box-shadow: 0 12px 28px -14px rgba(26, 23, 20, 0.28);
+    }
+
+    /* Image zoom: no scale. */
+    .img-zoom img { transition: none; }
+    .img-zoom:hover img { transform: none; }
+
+    /* Rail and pill: fade only — no slide, no stagger. */
+    .pc-rail > *, .pc-tip {
+        transform: none !important;
+        transition: opacity 0.12s linear !important;
+        transition-delay: 0ms !important;
+    }
 }
 
 /* Announcement ticker */
@@ -210,8 +313,22 @@ body {
     animation: ticker 40s linear infinite;
 }
 
-input, select, textarea {
+/* Focus rings. There were none before: the blanket `outline: none` below
+   stripped the only indicator the browser gave us, and a card whose actions
+   are revealed on hover makes a visible focus state non-negotiable.
+   Charcoal rather than gold — gold on ivory is 2.9:1, under the 3:1 WCAG
+   asks of a focus indicator. */
+:is(input, select, textarea):focus:not(:focus-visible) {
     outline: none;
+}
+:where(a, button, [role='button'], [tabindex]:not([tabindex='-1'])):focus-visible,
+:is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--color-charcoal);
+    outline-offset: 3px;
+}
+/* …flipped to pale gold where the surface underneath is charcoal. */
+.btn-dark-outline:focus-visible {
+    outline-color: var(--color-gold-pale);
 }
 
 /* Admin auth screens — warm charcoal with a soft gold glow, not flat black */

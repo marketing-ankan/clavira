@@ -112,8 +112,20 @@ export default function CategoryPage() {
                 {/* Grid */}
                 {loading ? (
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                        {/* Mirrors the real tile's full height — image + text block
+                            + CTA — so the loaded grid doesn't jump. */}
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="aspect-square bg-ivory-dark animate-pulse" />
+                            <div key={i} className="bg-white border border-gold/15">
+                                <div className="aspect-square bg-ivory-dark animate-pulse" />
+                                <div className="px-3 pt-4 pb-3 space-y-2">
+                                    <div className="h-2.5 bg-ivory-dark animate-pulse w-1/2 mx-auto" />
+                                    <div className="h-4 bg-ivory-dark animate-pulse w-4/5 mx-auto" />
+                                    <div className="h-4 bg-ivory-dark animate-pulse w-1/3 mx-auto" />
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <div className="h-9 bg-ivory-dark animate-pulse" />
+                                </div>
+                            </div>
                         ))}
                     </div>
                 ) : (

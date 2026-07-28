@@ -87,7 +87,7 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
 function BigCard({ product }) {
     return (
         <div className="relative group">
-            <WishlistButton productId={product.id} floating />
+            <WishlistButton productId={product.id} productName={product.name} floating />
             <Link to={`/product/${product.slug}`} className="block img-zoom aspect-[4/5] bg-ivory-dark relative shadow-2xl">
                 {product.image && <img src={`/${product.image}`} alt={product.name} className="w-full h-full object-cover" />}
                 {product.is_jadau && (
