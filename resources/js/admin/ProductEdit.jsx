@@ -100,7 +100,7 @@ export default function ProductEdit() {
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <h1 className="font-display text-2xl">{isNew ? 'New Product' : form.name || 'Edit Product'}</h1>
                 <div className="flex items-center gap-3">
-                    {msg && <span className="text-sm text-gold">{msg}</span>}
+                    {msg && <span className="text-sm text-gold-ink">{msg}</span>}
                     {!isNew && <button type="button" onClick={destroy} className="text-sm text-maroon hover:underline">Delete</button>}
                     <button type="submit" disabled={busy} className="btn-gold !py-2.5 !px-6">{busy ? 'Saving…' : 'Save'}</button>
                 </div>
@@ -182,12 +182,12 @@ export default function ProductEdit() {
                                 <div className="flex justify-between px-1 py-1 text-[10px]">
                                     {img.is_primary
                                         ? <span className="text-gold uppercase tracking-wide">Primary</span>
-                                        : <button type="button" onClick={() => makePrimary(img.id)} className="text-charcoal/50 hover:text-gold">Set primary</button>}
+                                        : <button type="button" onClick={() => makePrimary(img.id)} className="text-charcoal/60 hover:text-gold">Set primary</button>}
                                     <button type="button" onClick={() => removeImage(img.id)} className="text-maroon/70 hover:text-maroon">✕</button>
                                 </div>
                             </div>
                         ))}
-                        {images.length === 0 && <p className="text-sm text-charcoal/40">No images yet — upload one.</p>}
+                        {images.length === 0 && <p className="text-sm text-charcoal/60">No images yet — upload one.</p>}
                     </div>
                 </Card>
             )}
@@ -197,7 +197,7 @@ export default function ProductEdit() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm min-w-[560px]">
                             <thead>
-                                <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/50 border-b border-gold/20">
+                                <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/60 border-b border-gold/20">
                                     <th className="py-2 pr-3">Metal</th>
                                     <th className="py-2 pr-3">Purity</th>
                                     <th className="py-2 pr-3">Diamond</th>

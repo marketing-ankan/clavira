@@ -38,9 +38,9 @@ export default function Enquiries() {
                         <div key={e.id} className="border border-gold/15 p-4">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
-                                    <p className="font-medium text-sm">{e.name} <span className="text-charcoal/40 font-normal">· {e.email}{e.phone ? ` · ${e.phone}` : ''} · {e.country}</span></p>
+                                    <p className="font-medium text-sm">{e.name} <span className="text-charcoal/60 font-normal">· {e.email}{e.phone ? ` · ${e.phone}` : ''} · {e.country}</span></p>
                                     {e.product && (
-                                        <p className="text-xs text-gold mt-0.5">
+                                        <p className="text-xs text-gold-ink mt-0.5">
                                             About: <Link to={`/admin/products/${e.product.id}`} className="underline">{e.product.name}</Link>
                                         </p>
                                     )}
@@ -53,10 +53,10 @@ export default function Enquiries() {
                                 </div>
                             </div>
                             <p className="text-sm text-charcoal/70 mt-2 whitespace-pre-line">{e.message}</p>
-                            <p className="text-[11px] text-charcoal/40 mt-2">{new Date(e.created_at).toLocaleString('en-IN')}</p>
+                            <p className="text-[11px] text-charcoal/60 mt-2">{new Date(e.created_at).toLocaleString('en-IN')}</p>
                         </div>
                     ))}
-                    {data?.enquiries?.data?.length === 0 && <p className="py-8 text-center text-charcoal/40 text-sm">No enquiries.</p>}
+                    {data?.enquiries?.data?.length === 0 && <p className="py-8 text-center text-charcoal/60 text-sm">No enquiries.</p>}
                 </div>
                 <Pagination meta={data?.enquiries} onPage={(p) => setParam('page', String(p))} />
             </Card>

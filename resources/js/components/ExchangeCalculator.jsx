@@ -37,7 +37,7 @@ export default function ExchangeCalculator({ rate, className = '' }) {
     return (
         <div className={`border border-gold/25 bg-ivory ${className}`}>
             <div className="p-7 lg:p-9">
-                <p className="eyebrow text-gold mb-3">Old Gold Exchange</p>
+                <p className="eyebrow text-gold-ink mb-3">Old Gold Exchange</p>
                 <h3 className="font-display text-2xl md:text-3xl leading-tight">
                     What is your old gold worth today?
                 </h3>
@@ -79,7 +79,7 @@ export default function ExchangeCalculator({ rate, className = '' }) {
                 </div>
 
                 {perGram > 0 && (
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-charcoal/45 mt-4">
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-charcoal/60 mt-4">
                         Today&rsquo;s {PURITIES.find(([k]) => k === purity)?.[1]} rate ·{' '}
                         <span className="text-gold">{formatPrice(perGram)}/g</span>
                     </p>
@@ -91,24 +91,24 @@ export default function ExchangeCalculator({ rate, className = '' }) {
                     <p className="font-display text-2xl md:text-3xl text-gold">
                         {valid ? formatPrice(goldValue) : '—'}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/55 mt-2">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/60 mt-2">
                         Exchange value
                     </p>
-                    <p className="text-[11px] text-charcoal/45 mt-1.5">Zero making-charge deduction</p>
+                    <p className="text-[11px] text-charcoal/60 mt-1.5">Zero making-charge deduction</p>
                 </div>
                 <div className="bg-white text-center py-7 px-4">
                     <p className="font-display text-2xl md:text-3xl text-charcoal">
                         {valid ? formatPrice(goldValue * BUYBACK_SHARE) : '—'}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/55 mt-2">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/60 mt-2">
                         Buy-back value
                     </p>
-                    <p className="text-[11px] text-charcoal/45 mt-1.5">Up to 98% of gold value</p>
+                    <p className="text-[11px] text-charcoal/60 mt-1.5">Up to 98% of gold value</p>
                 </div>
             </div>
 
             <div className="px-7 lg:px-9 py-6 border-t border-gold/15">
-                <p className="text-[11px] text-charcoal/45 leading-relaxed">
+                <p className="text-[11px] text-charcoal/60 leading-relaxed">
                     Indicative only. Final value is confirmed after purity and weight verification,
                     and references your BIS hallmark and the published rate of the day.
                 </p>

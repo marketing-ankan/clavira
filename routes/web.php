@@ -18,9 +18,12 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RepairController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,9 +42,17 @@ Route::prefix('api')->group(function () {
     Route::patch('/cart/{item}', [CartController::class, 'update']);
     Route::delete('/cart/{item}', [CartController::class, 'remove']);
 
-    Route::post('/checkout', [CheckoutController::class, 'place']);
-    Route::post('/checkout/confirm', [CheckoutController::class, 'confirm']);
+    // Checkout requires an account: orders must always belong to a customer who
+    // can see them, invoice them, and reset their password. The guest cart is
+    // preserved through sign-in by claimGuestData, so nothing is lost.
+    Route::middleware('auth')->group(function () {
+        Route::post('/checkout', [CheckoutController::class, 'place']);
+        Route::post('/checkout/confirm', [CheckoutController::class, 'confirm']);
+    });
     Route::post('/webhooks/razorpay', [CheckoutController::class, 'webhook']);
+
+    // Uptime monitoring: 200 healthy, 503 not. No auth — it reveals nothing.
+    Route::get('/health', HealthController::class);
 
     Route::post('/certificates/verify', [CertificateController::class, 'verify']);
     Route::post('/enquiries', [EnquiryController::class, 'store']);
@@ -62,10 +73,13 @@ Route::prefix('api')->group(function () {
     Route::post('/auth/register', [CustomerAuthController::class, 'register'])->middleware('throttle:6,1');
     Route::post('/auth/login', [CustomerAuthController::class, 'login'])->middleware('throttle:6,1');
     Route::post('/auth/logout', [CustomerAuthController::class, 'logout']);
+    Route::post('/auth/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:6,1');
+    Route::post('/auth/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:6,1');
     Route::middleware('auth')->group(function () {
         Route::get('/auth/me', [CustomerAuthController::class, 'me']);
         Route::get('/account/orders', [AccountController::class, 'orders']);
         Route::get('/account/orders/{orderNo}', [AccountController::class, 'order']);
+        Route::get('/account/orders/{orderNo}/invoice', [AccountController::class, 'invoice']);
         Route::get('/account/addresses', [AccountController::class, 'addresses']);
         Route::post('/account/addresses', [AccountController::class, 'storeAddress']);
         Route::put('/account/addresses/{address}', [AccountController::class, 'updateAddress']);
@@ -97,6 +111,9 @@ Route::prefix('api')->group(function () {
             Route::get('/orders', [OrderAdminController::class, 'index']);
             Route::get('/orders/{order}', [OrderAdminController::class, 'show']);
             Route::patch('/orders/{order}/status', [OrderAdminController::class, 'updateStatus']);
+            Route::get('/orders/{order}/invoice', [OrderAdminController::class, 'invoice']);
+            Route::post('/orders/{order}/refund', [OrderAdminController::class, 'refund']);
+            Route::post('/orders/{order}/cancel', [OrderAdminController::class, 'cancel']);
 
             Route::get('/enquiries', [EnquiryAdminController::class, 'index']);
             Route::patch('/enquiries/{enquiry}/status', [EnquiryAdminController::class, 'updateStatus']);
@@ -125,6 +142,12 @@ Route::prefix('api')->group(function () {
     });
 });
 
+// Crawler endpoints. Both must be declared above the SPA catch-all, and
+// public/robots.txt was removed so this route is reachable — a static file in
+// public/ would shadow it and could never track a domain change.
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+Route::get('/robots.txt', [SitemapController::class, 'robots']);
+
 // Secret admin "knock" — visiting /<gate_key> reveals the admin login by
 // setting a cookie, then redirects to it. Only registered when a key is set.
 if ($gateKey = config('admin.gate_key')) {
@@ -146,5 +169,10 @@ Route::get('/{any?}', function (string $any = '') {
         abort(404);
     }
 
-    return view('app');
+    // Keep the indicative FX in window.__CLAVIRA current (daily; lazy because
+    // the scheduler cron is not guaranteed on shared hosting). Cheap when
+    // fresh: one indexed count, no HTTP.
+    app(\App\Services\FxService::class)->ensureFresh();
+
+    return view('app', ['seo' => \App\Support\Seo::forPath($any)]);
 })->where('any', '^(?!api).*$');

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { formatPrice } from '../format';
 
-const GST_RATE = 0.03; // 3% GST on jewellery (matches checkout)
+const GST_RATE = window.__CLAVIRA?.gst_rate ?? 0.03; // from config(clavira.gst_rate), single source of truth
 
 const RATE_KEY = { 24: 'rate_24k', 22: 'rate_22k', 18: 'rate_18k', 14: 'rate_14k' };
 
@@ -106,7 +106,7 @@ export default function PriceBreakup({ price, components = {}, goldRate = null, 
                                 <span className="font-medium">Total payable</span>
                                 <span className="font-display text-xl text-gold">{formatPrice(total)}</span>
                             </div>
-                            <p className="text-[11px] text-charcoal/40 mt-3 leading-relaxed">
+                            <p className="text-[11px] text-charcoal/60 mt-3 leading-relaxed">
                                 {live ? (
                                     <>
                                         Gold is valued at the{' '}
@@ -130,13 +130,13 @@ export default function PriceBreakup({ price, components = {}, goldRate = null, 
 function Row({ label, value, note = null, muted = false }) {
     return (
         <div className="flex justify-between items-baseline gap-4 py-0.5">
-            <span className={muted ? 'text-charcoal/55' : 'text-charcoal/80'}>
+            <span className={muted ? 'text-charcoal/60' : 'text-charcoal/80'}>
                 {label}
                 {note && (
-                    <span className="block text-[11px] text-charcoal/40 mt-0.5">{note}</span>
+                    <span className="block text-[11px] text-charcoal/60 mt-0.5">{note}</span>
                 )}
             </span>
-            <span className={`shrink-0 ${muted ? 'text-charcoal/55' : 'text-charcoal'}`}>
+            <span className={`shrink-0 ${muted ? 'text-charcoal/60' : 'text-charcoal'}`}>
                 {formatPrice(value)}
             </span>
         </div>

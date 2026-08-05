@@ -14,13 +14,13 @@ export default function AccountWishlist() {
     // reflect toggles made from the cards
     useEffect(() => { if (items) load(); /* eslint-disable-next-line */ }, [wishlistIds.length]);
 
-    if (!items) return <p className="text-charcoal/40">Loading…</p>;
+    if (!items) return <p className="text-charcoal/60">Loading…</p>;
 
     return (
         <div>
             <h2 className="font-display text-xl mb-5">Your wishlist</h2>
             {items.length === 0 ? (
-                <p className="text-charcoal/50 text-sm border border-gold/20 px-4 py-10 text-center">
+                <p className="text-charcoal/60 text-sm border border-gold/20 px-4 py-10 text-center">
                     Your wishlist is empty. Tap the ♥ on any piece to save it here.{' '}
                     <Link to="/collections" className="text-gold underline">Explore the Edits</Link>.
                 </p>

@@ -90,9 +90,9 @@ export default function RepairPage() {
                                         <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
                                     </label>
                                     {preview && <img src={preview} alt="preview" className="w-16 h-16 object-cover border border-gold/30" />}
-                                    {photo && <span className="text-xs text-charcoal/50 truncate max-w-[140px]">{photo.name}</span>}
+                                    {photo && <span className="text-xs text-charcoal/60 truncate max-w-[140px]">{photo.name}</span>}
                                 </div>
-                                <p className="text-[11px] text-charcoal/40 mt-1.5">JPG/PNG/WebP, up to 6 MB. A clear photo helps us assess accurately.</p>
+                                <p className="text-[11px] text-charcoal/60 mt-1.5">JPG/PNG/WebP, up to 6 MB. A clear photo helps us assess accurately.</p>
                             </div>
 
                             <div>
@@ -103,7 +103,7 @@ export default function RepairPage() {
 
                             {error && <p className="text-sm text-maroon">{error}</p>}
                             <button type="submit" disabled={busy} className="btn-gold w-full">{busy ? 'Sending…' : 'Request a Quote'}</button>
-                            <p className="text-[11px] text-center text-charcoal/40">Our atelier responds within 2 working days · No obligation</p>
+                            <p className="text-[11px] text-center text-charcoal/60">Our atelier responds within 2 working days · No obligation</p>
                         </form>
                     )}
                 </div>

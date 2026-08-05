@@ -28,7 +28,7 @@ export default function AdminLogin() {
         <div className="min-h-screen admin-auth-bg flex items-center justify-center px-4">
             <form onSubmit={submit} className="w-full max-w-sm bg-ivory p-8 border-t-2 border-gold shadow-2xl">
                 <img src="/images/brand/clavira-wordmark.png" alt="CLAVIRA" className="h-8 mx-auto" />
-                <p className="text-center text-[11px] uppercase tracking-[0.24em] text-gold mt-3 mb-8">Admin Sign-in</p>
+                <p className="text-center text-[11px] uppercase tracking-[0.24em] text-gold-ink mt-3 mb-8">Admin Sign-in</p>
 
                 <div className="space-y-4">
                     <Field label="Email">

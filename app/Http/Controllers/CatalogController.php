@@ -7,13 +7,20 @@ use App\Models\Certificate;
 use App\Models\Collection;
 use App\Models\GoldRate;
 use App\Models\Product;
+use App\Services\GoldRateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
 {
+    public function __construct(private readonly GoldRateService $goldRates) {}
+
     public function home(): JsonResponse
     {
+        // The ticker reads from here; never let it serve yesterday's rate when
+        // today's is fetchable (the scheduler cron may simply not be running).
+        $this->goldRates->ensureFresh();
+
         return response()->json([
             'categories' => Category::where('active', true)->orderBy('sort_order')->get(),
             'collections' => Collection::where('active', true)->orderBy('sort_order')->get(),
@@ -147,6 +154,8 @@ class CatalogController extends Controller
 
     public function goldRate(): JsonResponse
     {
+        $this->goldRates->ensureFresh();
+
         return response()->json(['gold_rate' => GoldRate::latest_rate()]);
     }
 
@@ -157,6 +166,8 @@ class CatalogController extends Controller
      */
     public function goldRateHistory(): JsonResponse
     {
+        $this->goldRates->ensureFresh();
+
         $current = GoldRate::latest_rate();
         $previous = GoldRate::previousDay();
 

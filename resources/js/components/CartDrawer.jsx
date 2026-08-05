@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../format';
+import { ApproxPrice } from '../currency';
 import { useCart } from '../store';
 
 export default function CartDrawer() {
@@ -49,7 +50,7 @@ export default function CartDrawer() {
                                     <div className="flex-1 min-w-0">
                                         <p className="font-display leading-snug">{item.name}</p>
                                         {item.options && (
-                                            <p className="text-[11px] text-charcoal/50 mt-0.5">
+                                            <p className="text-[11px] text-charcoal/60 mt-0.5">
                                                 {[item.options.metal, item.options.purity && `${item.options.purity}kt`, item.options.size && `Size ${item.options.size}`]
                                                     .filter(Boolean).join(' · ')}
                                             </p>
@@ -60,9 +61,9 @@ export default function CartDrawer() {
                                                 <span className="px-2 text-sm">{item.qty}</span>
                                                 <button className="px-2.5 py-1" onClick={() => updateQty(item.id, item.qty + 1)} aria-label="Increase quantity">+</button>
                                             </div>
-                                            <p className="text-sm text-gold font-medium">{formatPrice(item.line_total)}</p>
+                                            <p className="text-sm text-gold-ink font-medium">{formatPrice(item.line_total)}</p>
                                         </div>
-                                        <button className="text-[11px] uppercase tracking-[0.15em] text-charcoal/40 hover:text-maroon mt-1" onClick={() => remove(item.id)}>
+                                        <button className="text-[11px] uppercase tracking-[0.15em] text-charcoal/60 hover:text-maroon mt-1" onClick={() => remove(item.id)}>
                                             Remove
                                         </button>
                                     </div>
@@ -73,12 +74,13 @@ export default function CartDrawer() {
                         {cart.items.length > 0 && (
                             <div className="border-t border-gold/20 px-6 py-5 space-y-3">
                                 <div className="flex justify-between text-sm"><span>Subtotal</span><span>{formatPrice(cart.subtotal)}</span></div>
-                                <div className="flex justify-between text-sm text-charcoal/60"><span>GST (3%)</span><span>{formatPrice(cart.tax)}</span></div>
+                                <div className="flex justify-between text-sm text-charcoal/60"><span>GST (India delivery)</span><span>{formatPrice(cart.tax)}</span></div>
                                 <div className="flex justify-between font-medium text-lg"><span>Total</span><span className="text-gold">{formatPrice(cart.total)}</span></div>
+                                <p className="text-right text-xs"><ApproxPrice value={cart.total} /></p>
                                 <Link to="/checkout" onClick={() => setDrawerOpen(false)} className="btn-gold w-full mt-2">
                                     Secure Checkout
                                 </Link>
-                                <p className="text-[10px] text-center text-charcoal/40 uppercase tracking-[0.15em]">
+                                <p className="text-[10px] text-center text-charcoal/60 uppercase tracking-[0.15em]">
                                     Insured shipping · BIS hallmarked · IGI certified
                                 </p>
                             </div>

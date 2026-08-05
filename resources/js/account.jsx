@@ -40,6 +40,19 @@ export function AccountProvider({ children }) {
         return data.user;
     }, [loadWishlist]);
 
+    /** Always resolves — the API answers identically for known and unknown addresses. */
+    const requestPasswordReset = useCallback(async (email) => {
+        const { data } = await api.post('/auth/forgot-password', { email });
+        return data.message;
+    }, []);
+
+    const resetPassword = useCallback(async (payload) => {
+        const { data } = await api.post('/auth/reset-password', payload);
+        setUser(data.user);
+        await loadWishlist();
+        return data.user;
+    }, [loadWishlist]);
+
     const logout = useCallback(async () => {
         await api.post('/auth/logout');
         setUser(null);
@@ -55,7 +68,7 @@ export function AccountProvider({ children }) {
     const inWishlist = useCallback((id) => wishlistIds.includes(id), [wishlistIds]);
 
     return (
-        <AccountContext.Provider value={{ user, ready, login, register, logout, wishlistIds, wishlistCount: wishlistIds.length, toggleWishlist, inWishlist, loadWishlist }}>
+        <AccountContext.Provider value={{ user, ready, login, register, logout, requestPasswordReset, resetPassword, wishlistIds, wishlistCount: wishlistIds.length, toggleWishlist, inWishlist, loadWishlist }}>
             {children}
         </AccountContext.Provider>
     );

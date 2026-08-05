@@ -54,7 +54,7 @@ export default function Settings() {
                 {rates?.current && (
                     <p className="text-sm text-charcoal/60 mb-4">
                         Current: 24kt <strong className="text-gold"><Money value={rates.current.rate_24k} /></strong> · 22kt <Money value={rates.current.rate_22k} /> · 18kt <Money value={rates.current.rate_18k} /> · 14kt <Money value={rates.current.rate_14k} />
-                        <span className="text-charcoal/40"> — effective {new Date(rates.current.effective_at).toLocaleString('en-IN')}</span>
+                        <span className="text-charcoal/60"> — effective {new Date(rates.current.effective_at).toLocaleString('en-IN')}</span>
                     </p>
                 )}
                 <form onSubmit={saveRate} className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
@@ -64,7 +64,7 @@ export default function Settings() {
                     <Field label="14kt"><input required type="number" step="0.01" value={form.rate_14k} onChange={(e) => setForm((f) => ({ ...f, rate_14k: e.target.value }))} className={inputCls} /></Field>
                     <button type="submit" className="btn-gold !py-2.5">Publish</button>
                 </form>
-                {msg && <p className="text-sm text-gold mt-3">{msg}</p>}
+                {msg && <p className="text-sm text-gold-ink mt-3">{msg}</p>}
             </Card>
 
             <Card title="Certificates (Verify Report)">
@@ -82,7 +82,7 @@ export default function Settings() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[520px]">
                         <thead>
-                            <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/50 border-b border-gold/20">
+                            <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/60 border-b border-gold/20">
                                 <th className="py-2 pr-3">Certificate</th>
                                 <th className="py-2 pr-3">Type</th>
                                 <th className="py-2 pr-3">Item</th>
@@ -96,7 +96,7 @@ export default function Settings() {
                                     <td className="py-2 pr-3 font-medium">{c.certificate_no}</td>
                                     <td className="py-2 pr-3">{c.type}</td>
                                     <td className="py-2 pr-3 text-charcoal/70">{c.item_name}</td>
-                                    <td className="py-2 pr-3 text-charcoal/50 text-xs">{c.product?.name ?? '—'}</td>
+                                    <td className="py-2 pr-3 text-charcoal/60 text-xs">{c.product?.name ?? '—'}</td>
                                     <td className="py-2 text-right"><button onClick={() => delCert(c.id)} className="text-maroon/70 hover:text-maroon text-xs">Remove</button></td>
                                 </tr>
                             ))}

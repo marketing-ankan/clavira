@@ -16,6 +16,7 @@ class Order extends Model
         'total' => 'float',
         'shipping_address' => 'array',
         'billing_address' => 'array',
+        'confirmation_email_sent_at' => 'datetime',
     ];
 
     public function items(): HasMany
@@ -26,6 +27,17 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
+    /** Money actually returned (or in flight) against this order. */
+    public function refundedTotal(): float
+    {
+        return round((float) $this->refunds()->counted()->sum('amount'), 2);
     }
 
     public static function nextOrderNo(): string

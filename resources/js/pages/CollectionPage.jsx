@@ -45,7 +45,7 @@ export default function CollectionPage() {
                     ))}
                 </div>
                 {data && data.products.length === 0 && (
-                    <p className="text-center py-20 font-display text-xl text-charcoal/50">
+                    <p className="text-center py-20 font-display text-xl text-charcoal/60">
                         This edit is being curated — new pieces arriving soon.
                     </p>
                 )}

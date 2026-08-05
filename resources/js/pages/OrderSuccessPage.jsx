@@ -1,8 +1,20 @@
+import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatPrice } from '../format';
+import { track } from '../analytics';
 
 export default function OrderSuccessPage() {
     const { state } = useLocation();
+    const reported = useRef(false);
+
+    // Guard against a double send if React re-runs the effect (StrictMode) or
+    // the customer refreshes the confirmation page.
+    useEffect(() => {
+        if (state?.order_no && !reported.current) {
+            reported.current = true;
+            track.purchase(state);
+        }
+    }, [state]);
 
     return (
         <main className="max-w-xl mx-auto px-4 py-28 text-center">
@@ -15,11 +27,11 @@ export default function OrderSuccessPage() {
 
             {state?.order_no && (
                 <div className="border border-gold/30 bg-white p-6 mt-8 text-sm space-y-2">
-                    <div className="flex justify-between"><span className="text-charcoal/50">Order No.</span><strong>{state.order_no}</strong></div>
+                    <div className="flex justify-between"><span className="text-charcoal/60">Order No.</span><strong>{state.order_no}</strong></div>
                     {state.total != null && (
-                        <div className="flex justify-between"><span className="text-charcoal/50">Amount</span><strong className="text-gold">{formatPrice(state.total)}</strong></div>
+                        <div className="flex justify-between"><span className="text-charcoal/60">Amount</span><strong className="text-gold">{formatPrice(state.total)}</strong></div>
                     )}
-                    <div className="flex justify-between"><span className="text-charcoal/50">Status</span><strong className="uppercase tracking-wide">{state.demo ? 'Confirmed (demo)' : 'Paid'}</strong></div>
+                    <div className="flex justify-between"><span className="text-charcoal/60">Status</span><strong className="uppercase tracking-wide">{state.demo ? 'Confirmed (demo)' : 'Paid'}</strong></div>
                 </div>
             )}
 
@@ -29,7 +41,7 @@ export default function OrderSuccessPage() {
                 </p>
             )}
 
-            <p className="text-sm text-charcoal/50 mt-8 leading-relaxed">
+            <p className="text-sm text-charcoal/60 mt-8 leading-relaxed">
                 Every piece is BIS hallmarked, IGI certified where applicable, and dispatched fully insured.
             </p>
             <Link to="/" className="btn-gold mt-8">Continue Exploring</Link>

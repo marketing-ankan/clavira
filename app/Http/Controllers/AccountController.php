@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Address;
 use App\Models\Order;
+use App\Services\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class AccountController extends Controller
 {
@@ -26,7 +28,33 @@ class AccountController extends Controller
             ->with(['items', 'payments'])
             ->firstOrFail();
 
-        return response()->json(['order' => $order]);
+        // Customers must be able to see money coming back without emailing us.
+        $refunds = $order->refunds()->counted()
+            ->orderByDesc('id')
+            ->get(['id', 'amount', 'status', 'reason', 'created_at']);
+
+        return response()->json([
+            'order' => $order,
+            'refunds' => $refunds,
+            'refunded_total' => $order->refundedTotal(),
+            'invoice_available' => app(\App\Services\InvoiceService::class)->invoiceable($order),
+        ]);
+    }
+
+    /**
+     * GST invoice download, strictly scoped to the signed-in owner of the
+     * order. Reached as a plain <a href> so the session cookie authenticates;
+     * paid-for statuses only — an unpaid order has no invoice to give.
+     */
+    public function invoice(Request $request, string $orderNo, InvoiceService $invoices): Response
+    {
+        $order = Order::where('user_id', $request->user()->id)
+            ->where('order_no', $orderNo)
+            ->firstOrFail();
+
+        abort_unless($invoices->invoiceable($order), 422, 'This order has no invoice yet.');
+
+        return $invoices->download($order);
     }
 
     public function addresses(Request $request): JsonResponse

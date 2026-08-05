@@ -160,3 +160,47 @@ committed to the repo and shipped as-is.
 
 _Last updated: 2026-07-16 (live domain clavira.in; owner passwords set directly — see the
 git-ignored `docs/CREDENTIALS.local.md` on the dev machine)._
+
+---
+
+## 8. Scheduled jobs — the second cron entry
+
+The deploy cron (`deploy/hostinger-deploy.sh`) only pulls and rebuilds. Laravel's
+own scheduled jobs need a **separate hPanel cron entry**, running every minute:
+
+```bash
+cd ~/domains/clavira.in/laravel && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Without it, neither of these ever fires:
+
+| Job | When | What breaks without it |
+|---|---|---|
+| `clavira:gold-rate-fetch` | 09:15 daily | The storefront ticker keeps yesterday's rate until an owner publishes one by hand. |
+| `clavira:backup` | 02:30 daily | **No database backups at all.** |
+
+### Backups
+
+Dumps are written to `storage/backups/` (outside the web root, git-ignored) and
+the newest 14 are kept — change with `BACKUP_KEEP_DAYS`. If `mysqldump` is not on
+`PATH`, set `BACKUP_MYSQLDUMP_PATH=/usr/bin/mysqldump`.
+
+Run one by hand at any time:
+
+```bash
+php artisan clavira:backup
+```
+
+A failed backup emails every address in `ADMIN_OWNERS` and logs the reason.
+**Copy dumps off the server periodically** — a backup that only exists on the
+machine it is backing up is not a backup.
+
+### Uptime monitoring
+
+`GET /api/health` returns **200** when the shop is healthy and **503** when it is
+not, so any pinger (UptimeRobot, Better Stack) can alert on the status code
+alone. Point one at `https://clavira.in/api/health`.
+
+It reports three checks — `database`, `storage`, `backup`. A stale or missing
+backup is reported as `warn` and does **not** fail the endpoint: it is urgent for
+an owner, but it is not the shop being down and should not page anyone at 3am.

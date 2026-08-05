@@ -46,7 +46,7 @@ export default function NriPage() {
 
             <section className="max-w-7xl mx-auto px-4 lg:px-8 pb-20">
                 <Reveal className="text-center mb-12">
-                    <p className="eyebrow text-gold mb-3">{data?.collection?.badge}</p>
+                    <p className="eyebrow text-gold-ink mb-3">{data?.collection?.badge}</p>
                     <h2 className="font-display text-3xl md:text-4xl gold-rule">The NRI Fusion Edit</h2>
                 </Reveal>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">

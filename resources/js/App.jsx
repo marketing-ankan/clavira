@@ -1,6 +1,8 @@
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { CartProvider } from './store';
 import { AccountProvider } from './account';
+import { ConsentProvider, usePageViewTracking } from './consent';
+import { CurrencyProvider } from './currency';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import TrustBar from './components/TrustBar';
@@ -24,6 +26,7 @@ import ConsultationPage from './pages/ConsultationPage';
 import RepairPage from './pages/RepairPage';
 import PolicyPage from './pages/PolicyPage';
 import AccountAuth from './pages/AccountAuth';
+import AccountResetPassword from './pages/AccountResetPassword';
 import AccountLayout from './pages/AccountLayout';
 import AccountOverview from './pages/AccountOverview';
 import { AccountOrders, AccountOrderDetail } from './pages/AccountOrders';
@@ -44,17 +47,36 @@ import Reviews from './admin/Reviews';
 import Consultations from './admin/Consultations';
 import Repairs from './admin/Repairs';
 
+/** Client-side navigations are not page loads, so page views are sent here. */
+function RouteAnalytics() {
+    usePageViewTracking(useLocation().pathname);
+
+    return null;
+}
+
 function ShopLayout() {
     return (
         <AccountProvider>
             <CartProvider>
-                <Header />
-                <CartDrawer />
-                <Outlet />
-                <TrustBar />
-                <Footer />
-                <WhatsAppButton />
-                <PaletteSwitcher />
+                <CurrencyProvider>
+                <ConsentProvider>
+                    <RouteAnalytics />
+                    {/* First focusable element on the page: lets keyboard and
+                        screen-reader users jump the header's ~20 nav links.
+                        Each page supplies its own <main>, so this wraps the
+                        outlet rather than adding a second landmark. */}
+                    <a href="#main-content" className="skip-link">Skip to content</a>
+                    <Header />
+                    <CartDrawer />
+                    <div id="main-content" tabIndex={-1}>
+                        <Outlet />
+                    </div>
+                    <TrustBar />
+                    <Footer />
+                    <WhatsAppButton />
+                    <PaletteSwitcher />
+                </ConsentProvider>
+                </CurrencyProvider>
             </CartProvider>
         </AccountProvider>
     );
@@ -83,6 +105,7 @@ export default function App() {
                     <Route path="/services/repair" element={<RepairPage />} />
                     <Route path="/policies/:slug" element={<PolicyPage />} />
                     <Route path="/account/login" element={<AccountAuth />} />
+                    <Route path="/account/reset-password/:token" element={<AccountResetPassword />} />
                     <Route path="/account" element={<AccountLayout />}>
                         <Route index element={<AccountOverview />} />
                         <Route path="orders" element={<AccountOrders />} />

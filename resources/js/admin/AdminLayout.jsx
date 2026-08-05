@@ -32,7 +32,7 @@ export default function AdminLayout() {
     };
 
     if (!checked || !user) {
-        return <div className="min-h-screen bg-ivory flex items-center justify-center font-display text-xl text-charcoal/40">Clavira Admin…</div>;
+        return <div className="min-h-screen bg-ivory flex items-center justify-center font-display text-xl text-charcoal/60">Clavira Admin…</div>;
     }
 
     return (

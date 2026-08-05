@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
+use App\Http\Controllers\Concerns\ClaimsGuestData;
 use App\Models\User;
-use App\Models\WishlistItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +12,8 @@ use Illuminate\Validation\Rules\Password;
 
 class CustomerAuthController extends Controller
 {
+    use ClaimsGuestData;
+
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -76,18 +77,4 @@ class CustomerAuthController extends Controller
         ];
     }
 
-    /** On login/register, attach the guest cart and merge the guest wishlist to the user. */
-    private function claimGuestData(Request $request, User $user): void
-    {
-        if ($token = $request->session()->get('cart_token')) {
-            Cart::where('session_token', $token)->whereNull('user_id')->update(['user_id' => $user->id]);
-        }
-
-        if ($token = $request->session()->get('wishlist_token')) {
-            foreach (WishlistItem::where('session_token', $token)->whereNull('user_id')->get() as $item) {
-                $exists = WishlistItem::where('user_id', $user->id)->where('product_id', $item->product_id)->exists();
-                $exists ? $item->delete() : $item->update(['user_id' => $user->id, 'session_token' => null]);
-            }
-        }
-    }
 }

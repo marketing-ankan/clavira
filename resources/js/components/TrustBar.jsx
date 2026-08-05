@@ -19,7 +19,7 @@ export default function TrustBar() {
                         </svg>
                         <div className="leading-tight">
                             <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-charcoal font-medium">{title}</p>
-                            <p className="text-[10px] md:text-[11px] text-charcoal/50 mt-0.5">{sub}</p>
+                            <p className="text-[10px] md:text-[11px] text-charcoal/60 mt-0.5">{sub}</p>
                         </div>
                     </div>
                 ))}

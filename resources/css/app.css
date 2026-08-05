@@ -96,7 +96,9 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: var(--color-gold);
+    /* Brand gold behind white text is only 3.09:1 at this size — below the
+       4.5:1 AA needs. The darker gold-ink keeps the colour family and passes. */
+    background: var(--color-gold-ink);
     color: #fff;
     text-transform: uppercase;
     letter-spacing: 0.2em;
@@ -113,8 +115,10 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    /* The border may stay brand gold (3:1 is only required of the boundary,
+       and it sits on ivory); the LABEL must not — 2.89:1. */
     border: 1px solid var(--color-gold);
-    color: var(--color-gold);
+    color: var(--color-gold-ink);
     text-transform: uppercase;
     letter-spacing: 0.2em;
     font-size: 0.72rem;
@@ -124,7 +128,7 @@ body {
     cursor: pointer;
     background: transparent;
 }
-.btn-outline:hover { background: var(--color-gold); color: #fff; }
+.btn-outline:hover { background: var(--color-gold-ink); color: #fff; }
 
 .btn-dark-outline {
     display: inline-flex;
@@ -336,4 +340,42 @@ body {
     background:
         radial-gradient(900px 520px at 50% -8%, rgba(176, 141, 87, 0.18), transparent 62%),
         linear-gradient(158deg, #2b2620 0%, #1a1714 52%, #120f0b 100%);
+}
+
+/* Skip link. Off-screen until focused, then pinned over the sticky header.
+   Charcoal on ivory (16.7:1) rather than the brand gold, which cannot make
+   the 3:1 a focus indicator needs. */
+.skip-link {
+    position: absolute;
+    left: 0.5rem;
+    top: -100%;
+    z-index: 100;
+    background: var(--color-ivory);
+    color: var(--color-charcoal);
+    border: 2px solid var(--color-charcoal);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    transition: top 0.15s ease;
+}
+.skip-link:focus {
+    top: 0.5rem;
+}
+
+/* A focused landmark should not draw a ring of its own — the destination
+   heading is the cue, and the browser scrolls it into view regardless. */
+#main-content:focus {
+    outline: none;
+}
+
+/* Scroll-reveal entrances start 40px off-axis (Reveal.jsx `x: ±40`). On a
+   narrow viewport that pushes not-yet-revealed sections past the right edge
+   and the page gains ~24px of horizontal scroll until the animation fires.
+
+   `clip` rather than `hidden` on purpose: `overflow-x: hidden` turns the root
+   into a scroll container and breaks `position: sticky` on the header, which
+   is how this normally gets "fixed" and then quietly regressed. */
+html {
+    overflow-x: clip;
 }

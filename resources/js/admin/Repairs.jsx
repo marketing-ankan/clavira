@@ -44,7 +44,7 @@ export default function Repairs() {
                             )}
                             <div className="flex-1 min-w-[220px]">
                                 <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <p className="text-sm font-medium">{r.name} <span className="text-charcoal/40 font-normal">· {r.email} · {r.phone}</span></p>
+                                    <p className="text-sm font-medium">{r.name} <span className="text-charcoal/60 font-normal">· {r.email} · {r.phone}</span></p>
                                     <div className="flex items-center gap-2">
                                         <StatusBadge status={r.status} />
                                         <select value={r.status} onChange={(e) => setStatus(r.id, e.target.value)} className="border border-gold/30 text-xs px-2 py-1 bg-white">
@@ -53,11 +53,11 @@ export default function Repairs() {
                                     </div>
                                 </div>
                                 <p className="text-sm text-charcoal/70 mt-2 whitespace-pre-line">{r.message}</p>
-                                <p className="text-[11px] text-charcoal/40 mt-2">{new Date(r.created_at).toLocaleString('en-IN')}</p>
+                                <p className="text-[11px] text-charcoal/60 mt-2">{new Date(r.created_at).toLocaleString('en-IN')}</p>
                             </div>
                         </div>
                     ))}
-                    {data?.repairs?.data?.length === 0 && <p className="py-8 text-center text-charcoal/40 text-sm">No repair requests.</p>}
+                    {data?.repairs?.data?.length === 0 && <p className="py-8 text-center text-charcoal/60 text-sm">No repair requests.</p>}
                 </div>
                 <Pagination meta={data?.repairs} onPage={(p) => setParam('page', String(p))} />
             </Card>

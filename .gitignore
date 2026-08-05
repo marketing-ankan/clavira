@@ -23,3 +23,14 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+storage/backups/
+
+# Virtual try-on runtime (MediaPipe wasm ~22MB + face model ~3.7MB).
+# Deliberately NOT committed: this repo already ships vendor/ + public/build and
+# the deploy cron pulls every 5 minutes. Decide before shipping try-on — either
+# commit these, or point FilesetResolver at a CDN. Regenerate locally with:
+#   cp node_modules/@mediapipe/tasks-vision/wasm/* public/mediapipe/wasm/
+#   curl -Lo public/models/face_landmarker.task \
+#     https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
+/public/mediapipe/
+/public/models/

@@ -3,6 +3,10 @@ import { Link, useParams } from 'react-router-dom';
 import api from '../api';
 import { diamondLabel, formatPrice, metalLabel } from '../format';
 import { useCart } from '../store';
+import { ApproxPrice } from '../currency';
+import CompareSlider from '../components/CompareSlider';
+import JewelleryTryOn from '../components/JewelleryTryOn';
+import { track } from '../analytics';
 import WishlistButton from '../components/WishlistButton';
 import ProductReviews from '../components/ProductReviews';
 import Stars from '../components/Stars';
@@ -28,12 +32,16 @@ export default function ProductPage() {
     const [openSection, setOpenSection] = useState('description');
     const [adding, setAdding] = useState(false);
     const [guide, setGuide] = useState(null);
+    const [compare, setCompare] = useState(false);
+    const [tryOn, setTryOn] = useState(false);
     const cartApi = useCart();
 
     useEffect(() => {
         setData(null);
+        setCompare(false); // a new piece starts in the normal single-image view
         api.get(`/products/${slug}`).then(({ data }) => {
             setData(data);
+            track.viewItem(data.product);
             setActiveImg(0);
             setMetal(data.product.default_metal);
             setPurity(data.product.default_purity);
@@ -45,6 +53,14 @@ export default function ProductPage() {
 
     const product = data?.product;
     const variants = product?.variants ?? [];
+
+    // Compare the selected image against the next one in the set, wrapping at
+    // the end so the last thumbnail still has something to wipe against.
+    const images = product?.images ?? [];
+    const compareWith = images.length > 1 ? images[(activeImg + 1) % images.length] : null;
+
+    // Try-on needs a prepared transparent cutout; pieces without one show no button.
+    const tryOnPiece = product ? window.__CLAVIRA?.tryon?.pieces?.[product.slug] ?? null : null;
 
     const metals = useMemo(() => [...new Set(variants.map((v) => v.metal))], [variants]);
     const purities = useMemo(() => [...new Set(variants.map((v) => v.purity))].sort((a, b) => a - b), [variants]);
@@ -97,7 +113,7 @@ export default function ProductPage() {
     return (
         <main className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
             {/* Breadcrumb */}
-            <nav className="text-[11px] uppercase tracking-[0.18em] text-charcoal/50 mb-8" aria-label="Breadcrumb">
+            <nav className="text-[11px] uppercase tracking-[0.18em] text-charcoal/60 mb-8" aria-label="Breadcrumb">
                 <Link to="/" className="hover:text-gold">Home</Link>
                 <span className="mx-2">/</span>
                 <Link to={`/category/${product.category.slug}`} className="hover:text-gold">{product.category.name}</Link>
@@ -108,17 +124,29 @@ export default function ProductPage() {
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
                 {/* Gallery */}
                 <div>
-                    <div className="img-zoom aspect-square bg-ivory-dark">
-                        {product.images[activeImg] && (
-                            <img
-                                src={`/${product.images[activeImg].path}`}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                            />
-                        )}
-                    </div>
+                    {compare && compareWith ? (
+                        <CompareSlider
+                            before={`/${product.images[activeImg].path}`}
+                            after={`/${compareWith.path}`}
+                            beforeAlt={`${product.name} — studio view`}
+                            afterAlt={`${product.name} — alternate view`}
+                            beforeLabel="This view"
+                            afterLabel="Alternate"
+                        />
+                    ) : (
+                        <div className="img-zoom aspect-square bg-ivory-dark">
+                            {product.images[activeImg] && (
+                                <img
+                                    src={`/${product.images[activeImg].path}`}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                        </div>
+                    )}
+
                     {product.images.length > 1 && (
-                        <div className="flex gap-3 mt-4">
+                        <div className="flex items-center gap-3 mt-4 flex-wrap">
                             {product.images.map((img, i) => (
                                 <button
                                     key={img.id}
@@ -129,7 +157,34 @@ export default function ProductPage() {
                                     <img src={`/${img.path}`} alt="" className="w-full h-full object-cover" />
                                 </button>
                             ))}
+
+                            {/* Side-by-side wipe against the next image in the set. */}
+                            <button
+                                type="button"
+                                onClick={() => setCompare((v) => !v)}
+                                aria-pressed={compare}
+                                className="ml-auto inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-gold-ink border border-gold/30 hover:border-gold px-3 py-2"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                                    <path d="M12 4v16M4 7h5v10H4zM15 7h5v10h-5z" />
+                                </svg>
+                                {compare ? 'Exit compare' : 'Compare'}
+                            </button>
                         </div>
+                    )}
+
+                    {tryOnPiece && (
+                        <button
+                            type="button"
+                            onClick={() => setTryOn(true)}
+                            className="btn-outline w-full mt-4 !py-3"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                                <path d="M3 8V6a2 2 0 0 1 2-2h2M17 4h2a2 2 0 0 1 2 2v2M21 16v2a2 2 0 0 1-2 2h-2M7 20H5a2 2 0 0 1-2-2v-2" />
+                                <circle cx="12" cy="12" r="3.2" />
+                            </svg>
+                            {tryOnPiece.mode === 'finger' ? 'Try it on your hand' : 'Try it on with your camera'}
+                        </button>
                     )}
                 </div>
 
@@ -149,13 +204,14 @@ export default function ProductPage() {
                     {data.rating?.count > 0 && (
                         <div className="flex items-center gap-2 mt-3">
                             <Stars value={data.rating.average} size={15} />
-                            <span className="text-xs text-charcoal/50">{data.rating.average} · {data.rating.count} review{data.rating.count === 1 ? '' : 's'}</span>
+                            <span className="text-xs text-charcoal/60">{data.rating.average} · {data.rating.count} review{data.rating.count === 1 ? '' : 's'}</span>
                         </div>
                     )}
                     <p className="text-charcoal/60 mt-3 leading-relaxed">{product.description}</p>
 
                     <p className="font-display text-3xl text-gold mt-6">{formatPrice(price)}</p>
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-charcoal/40 mt-1">
+                    <p className="text-sm mt-1"><ApproxPrice value={price} /></p>
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-charcoal/60 mt-1">
                         Inclusive of all certifications · GST additional at checkout
                     </p>
 
@@ -237,7 +293,7 @@ export default function ProductPage() {
                         </Link>
                     </div>
 
-                    <p className="text-[11px] text-charcoal/50 mt-4 leading-relaxed">
+                    <p className="text-[11px] text-charcoal/60 mt-4 leading-relaxed">
                         ✦ Made to order · Dispatched fully insured · Diamonds can be lab-grown or natural as required
                     </p>
 
@@ -306,6 +362,14 @@ export default function ProductPage() {
             <ProductReviews slug={product.slug} />
 
             <GuideModal guide={guide} onClose={() => setGuide(null)} />
+
+            {tryOn && tryOnPiece && (
+                <JewelleryTryOn
+                    piece={tryOnPiece}
+                    productName={product.name}
+                    onClose={() => setTryOn(false)}
+                />
+            )}
         </main>
     );
 }
@@ -326,7 +390,7 @@ function Option({ label, children, guide, onGuide }) {
                 {guide && (
                     <button
                         onClick={() => onGuide(guide)}
-                        className="flex items-center gap-1 text-[11px] text-gold hover:text-charcoal transition-colors"
+                        className="flex items-center gap-1 text-[11px] text-gold-ink hover:text-charcoal transition-colors"
                     >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                             <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />

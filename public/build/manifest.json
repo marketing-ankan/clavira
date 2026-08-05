@@ -1,6 +1,12 @@
 {
+  "node_modules/@mediapipe/tasks-vision/vision_bundle.mjs": {
+    "file": "assets/vision_bundle-DU5csDql.js",
+    "name": "vision_bundle",
+    "src": "node_modules/@mediapipe/tasks-vision/vision_bundle.mjs",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
-    "file": "assets/app-CpyIkVjP.css",
+    "file": "assets/app-CELfmXcT.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -9,9 +15,12 @@
     ]
   },
   "resources/js/main.jsx": {
-    "file": "assets/main-u5NSRnap.js",
+    "file": "assets/main-CadS5-IR.js",
     "name": "main",
     "src": "resources/js/main.jsx",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/@mediapipe/tasks-vision/vision_bundle.mjs"
+    ]
   }
 }

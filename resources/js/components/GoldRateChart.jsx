@@ -40,7 +40,7 @@ export default function GoldRateChart({ series = [], karat = 'rate_22k' }) {
     if (!points) {
         return (
             <div className="border border-gold/20 bg-ivory px-6 py-16 text-center">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-charcoal/50">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-charcoal/60">
                     Not enough history yet
                 </p>
                 <p className="text-sm text-charcoal/60 mt-3 max-w-md mx-auto leading-relaxed">
@@ -70,12 +70,12 @@ export default function GoldRateChart({ series = [], karat = 'rate_22k' }) {
         <div className="text-gold">
             <div className="flex items-baseline justify-between gap-4 mb-3 px-1">
                 <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-charcoal/50">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-charcoal/60">
                         {active.date}
                     </p>
                     <p className="font-display text-2xl text-gold mt-0.5">
                         {formatPrice(active.value)}
-                        <span className="text-[11px] tracking-[0.14em] text-charcoal/45 ml-1.5">/g</span>
+                        <span className="text-[11px] tracking-[0.14em] text-charcoal/60 ml-1.5">/g</span>
                     </p>
                 </div>
                 <p className={`text-xs ${rising ? 'text-gold' : 'text-maroon'}`}>

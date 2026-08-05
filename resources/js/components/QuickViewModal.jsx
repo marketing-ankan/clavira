@@ -210,7 +210,7 @@ export default function QuickViewModal({ slug, onClose }) {
                                     type="button"
                                     onClick={close}
                                     aria-label="Close quick view"
-                                    className="p-1 text-charcoal/50 hover:text-gold transition-colors"
+                                    className="p-1 text-charcoal/60 hover:text-gold transition-colors"
                                 >
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                                         <path d="M6 6l12 12M18 6L6 18" />
@@ -270,7 +270,7 @@ export default function QuickViewModal({ slug, onClose }) {
                                         <p className="font-display italic text-2xl text-gold-ink mt-3">
                                             {formatPrice(price)}
                                         </p>
-                                        <p className="text-[10px] uppercase tracking-[0.14em] text-charcoal/50 mt-1">
+                                        <p className="text-[10px] uppercase tracking-[0.14em] text-charcoal/60 mt-1">
                                             GST additional at checkout
                                         </p>
 
@@ -337,7 +337,7 @@ export default function QuickViewModal({ slug, onClose }) {
                                         <Link
                                             to={`/product/${product.slug}`}
                                             onClick={close}
-                                            className="block text-center text-[11px] uppercase tracking-[0.18em] text-charcoal/60 hover:text-gold transition-colors mt-4"
+                                            className="block text-center text-[11px] uppercase tracking-[0.18em] text-charcoal/60 hover:text-gold-ink transition-colors mt-4"
                                         >
                                             View full details
                                         </Link>

@@ -22,7 +22,7 @@ export default function CertificateViewer({ certificate, product }) {
                 </svg>
                 <div className="flex-1">
                     <p className="text-sm font-medium">{labName} Certified · {certificate.certificate_no}</p>
-                    <p className="text-[11px] text-charcoal/55">Tap to view certificate details &amp; verify authenticity</p>
+                    <p className="text-[11px] text-charcoal/60">Tap to view certificate details &amp; verify authenticity</p>
                 </div>
                 <span className="text-gold text-lg">›</span>
             </button>
@@ -59,7 +59,7 @@ export default function CertificateViewer({ certificate, product }) {
                                         <Link to={`/verify?no=${certificate.certificate_no}`} className="btn-gold w-full !py-2.5" onClick={() => setOpen(false)}>
                                             Verify this certificate
                                         </Link>
-                                        <p className="text-[11px] text-charcoal/40 text-center mt-2">Cross-check the number on our public verification page.</p>
+                                        <p className="text-[11px] text-charcoal/60 text-center mt-2">Cross-check the number on our public verification page.</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -75,7 +75,7 @@ export default function CertificateViewer({ certificate, product }) {
 function Detail({ label, value, mono = false }) {
     return (
         <div className="flex justify-between gap-4">
-            <span className="text-charcoal/50">{label}</span>
+            <span className="text-charcoal/60">{label}</span>
             <span className={`text-right ${mono ? 'font-mono tracking-wide' : ''}`}>{value}</span>
         </div>
     );

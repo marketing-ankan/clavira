@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import api from './api';
+import { track } from './analytics';
 
 const CartContext = createContext(null);
 
@@ -29,6 +30,11 @@ export function CartProvider({ children }) {
         });
         setCart(data);
         setDrawerOpen(true);
+
+        // The response is the whole cart; the line just added is the last one
+        // matching this product, which is what we want to report.
+        const added = [...(data.items ?? [])].reverse().find((i) => i.product_id === productId);
+        track.addToCart(added);
     }, []);
 
     const updateQty = useCallback(async (itemId, qty) => {

@@ -19,7 +19,7 @@ export default function AccountLayout() {
     }, [ready, user, navigate]);
 
     if (!ready || !user) {
-        return <main className="min-h-[60vh] flex items-center justify-center font-display text-xl text-charcoal/40">Loading…</main>;
+        return <main className="min-h-[60vh] flex items-center justify-center font-display text-xl text-charcoal/60">Loading…</main>;
     }
 
     const signOut = async () => {
@@ -30,7 +30,7 @@ export default function AccountLayout() {
     return (
         <main className="max-w-6xl mx-auto px-4 lg:px-8 py-12">
             <div className="text-center mb-10">
-                <p className="eyebrow text-gold mb-2">My Account</p>
+                <p className="eyebrow text-gold-ink mb-2">My Account</p>
                 <h1 className="font-display text-3xl md:text-4xl">Hello, {user.name.split(' ')[0]}</h1>
             </div>
 
@@ -51,7 +51,7 @@ export default function AccountLayout() {
                                 {label}
                             </NavLink>
                         ))}
-                        <button onClick={signOut} className="px-4 py-3 text-sm tracking-wide text-left text-charcoal/50 hover:text-maroon">
+                        <button onClick={signOut} className="px-4 py-3 text-sm tracking-wide text-left text-charcoal/60 hover:text-maroon">
                             Sign out
                         </button>
                     </nav>

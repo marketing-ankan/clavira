@@ -61,7 +61,7 @@ export default function GuideModal({ guide, onClose }) {
                     >
                         <div className="flex items-start justify-between mb-4">
                             <h3 className="font-display text-2xl">{g.title}</h3>
-                            <button onClick={onClose} aria-label="Close" className="p-1 text-charcoal/50 hover:text-gold">
+                            <button onClick={onClose} aria-label="Close" className="p-1 text-charcoal/60 hover:text-gold">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 6l12 12M18 6L6 18" /></svg>
                             </button>
                         </div>
@@ -74,7 +74,7 @@ export default function GuideModal({ guide, onClose }) {
                                 </div>
                             ))}
                         </dl>
-                        <p className="mt-6 text-[11px] uppercase tracking-[0.14em] text-gold border-t border-gold/20 pt-4">{g.footer}</p>
+                        <p className="mt-6 text-[11px] uppercase tracking-[0.14em] text-gold-ink border-t border-gold/20 pt-4">{g.footer}</p>
                     </motion.div>
                 </>
             )}

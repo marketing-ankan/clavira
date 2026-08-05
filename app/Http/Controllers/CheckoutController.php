@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\OrderMailer;
 use App\Services\RazorpayGateway;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private readonly RazorpayGateway $gateway) {}
+    public function __construct(
+        private readonly RazorpayGateway $gateway,
+        private readonly OrderMailer $mailer,
+    ) {}
 
     /** Create the order + gateway order; frontend then opens Razorpay Checkout. */
     public function place(Request $request): JsonResponse
@@ -27,10 +31,12 @@ class CheckoutController extends Controller
             'city' => 'required|string|max:120',
             'state' => 'required|string|max:120',
             'postal_code' => 'required|string|max:20',
-            'country' => 'string|size:2',
+            'country' => ['string', 'size:2', \Illuminate\Validation\Rule::in(\App\Support\Countries::codes())],
             'notes' => 'nullable|string|max:1000',
         ]);
 
+        // Logged-in carts were claimed on sign-in; guests can no longer reach
+        // this endpoint, but the session token still identifies the cart.
         $token = $request->session()->get('cart_token');
         $cart = $token ? Cart::with('items.product')->where('session_token', $token)->first() : null;
 
@@ -38,9 +44,14 @@ class CheckoutController extends Controller
             return response()->json(['message' => 'Your cart is empty.'], 422);
         }
 
+        $country = strtoupper($data['country'] ?? \App\Support\Countries::default());
+
+        // GST only applies to domestic orders; exports are zero-rated and pay
+        // the market's flat insured-shipping charge instead.
         $subtotal = round($cart->items->sum(fn ($i) => $i->unit_price * $i->qty), 2);
-        $tax = round($subtotal * 0.03, 2);
-        $total = round($subtotal + $tax, 2);
+        $shipping = \App\Support\Countries::shipping($country);
+        $tax = round($subtotal * \App\Support\Countries::taxRate($country), 2);
+        $total = round($subtotal + $shipping + $tax, 2);
 
         $address = [
             'name' => $data['name'],
@@ -50,10 +61,10 @@ class CheckoutController extends Controller
             'city' => $data['city'],
             'state' => $data['state'],
             'postal_code' => $data['postal_code'],
-            'country' => $data['country'] ?? 'IN',
+            'country' => $country,
         ];
 
-        $order = DB::transaction(function () use ($cart, $data, $address, $subtotal, $tax, $total) {
+        $order = DB::transaction(function () use ($cart, $data, $address, $subtotal, $shipping, $tax, $total) {
             $order = Order::create([
                 'order_no' => Order::nextOrderNo(),
                 'user_id' => auth()->id(),
@@ -63,6 +74,7 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'currency' => 'INR',
                 'subtotal' => $subtotal,
+                'shipping' => $shipping,
                 'tax' => $tax,
                 'total' => $total,
                 'shipping_address' => $address,
@@ -130,6 +142,9 @@ class CheckoutController extends Controller
         ]);
         $order->update(['status' => 'paid']);
 
+        // Confirmation email. Idempotent — the webhook may also reach this order.
+        $this->mailer->sendConfirmation($order);
+
         // Clear the cart
         if ($token = $request->session()->get('cart_token')) {
             Cart::where('session_token', $token)->first()?->items()->delete();
@@ -165,6 +180,12 @@ class CheckoutController extends Controller
                     'payload' => $entity,
                 ]);
                 $payment->order->update(['status' => $captured ? 'paid' : 'failed']);
+
+                // Safety net: if the browser never came back (closed tab, lost
+                // connection), this is the only path that will confirm the order.
+                if ($captured) {
+                    $this->mailer->sendConfirmation($payment->order->refresh());
+                }
             }
         }
 

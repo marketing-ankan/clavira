@@ -6,6 +6,32 @@ import api from '../api';
 import { formatPrice } from '../format';
 import { useCart } from '../store';
 import { useAccount } from '../account';
+import { useCurrency } from '../currency';
+
+/**
+ * NRI currency hint selector. Hidden entirely until FX rates exist (fresh
+ * install, feed never fetched) — an "INR only" dropdown is just noise.
+ */
+function CurrencySelect() {
+    const { currency, choose, options } = useCurrency();
+
+    if (options.length < 2) return null;
+
+    return (
+        <label className="hidden md:block">
+            <span className="sr-only">Display currency</span>
+            <select
+                value={currency}
+                onChange={(e) => choose(e.target.value)}
+                className="bg-transparent text-[11px] uppercase tracking-[0.14em] text-charcoal/70 border border-gold/30 focus:border-gold px-1.5 py-1.5 cursor-pointer"
+            >
+                {options.map((o) => (
+                    <option key={o.code} value={o.code}>{o.label}</option>
+                ))}
+            </select>
+        </label>
+    );
+}
 import Logo from './Logo';
 
 const NAV = [
@@ -62,6 +88,11 @@ function megaColumns(cat, label) {
 }
 
 export default function Header() {
+    // Ticker motion controls (WCAG 2.2.2). `stopped` is the explicit user
+    // choice and sticks; `paused` is the transient hover courtesy.
+    const [tickerStopped, setTickerStopped] = useState(false);
+    const [tickerPaused, setTickerPaused] = useState(false);
+
     const [rate, setRate] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -114,9 +145,34 @@ export default function Header() {
     return (
         <>
         <header className="sticky top-0 z-50 bg-ivory/95 backdrop-blur border-b border-gold/20">
-            {/* Announcement ticker */}
-            <div className="bg-charcoal text-gold-light overflow-hidden py-1.5" aria-label="Announcements">
-                <div className="ticker-track flex whitespace-nowrap w-max">
+            {/* Announcement ticker. WCAG 2.2.2 (Level A): content that moves for
+                more than five seconds needs a control to stop it. Pausing on
+                hover/focus is not enough on its own — hence the button. */}
+            <div
+                className="bg-charcoal text-gold-light overflow-hidden py-1.5 relative group"
+                aria-label="Announcements"
+                onMouseEnter={() => setTickerPaused(true)}
+                onMouseLeave={() => setTickerPaused(false)}
+            >
+                <button
+                    type="button"
+                    onClick={() => setTickerStopped((v) => !v)}
+                    aria-pressed={tickerStopped}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-gold-light/70 hover:text-gold-light focus-visible:opacity-100 bg-charcoal"
+                >
+                    <span className="sr-only">
+                        {tickerStopped ? 'Resume the announcement ticker' : 'Stop the announcement ticker'}
+                    </span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        {tickerStopped
+                            ? <path d="M8 5v14l11-7z" />
+                            : <><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></>}
+                    </svg>
+                </button>
+                <div
+                    className="ticker-track flex whitespace-nowrap w-max"
+                    style={{ animationPlayState: tickerStopped || tickerPaused ? 'paused' : 'running' }}
+                >
                     {[0, 1].map((dup) => (
                         <div key={dup} className="flex" aria-hidden={dup === 1}>
                             {tickerItems.map((item, i) => (
@@ -146,6 +202,7 @@ export default function Header() {
                     <Logo />
 
                     <div className="flex items-center gap-1 md:gap-3">
+                        <CurrencySelect />
                         <button className="p-2" onClick={() => setSearchOpen((v) => !v)} aria-label="Search">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                 <circle cx="11" cy="11" r="7" />
@@ -225,14 +282,14 @@ export default function Header() {
                         <div className="max-w-7xl mx-auto px-8 py-9 grid grid-cols-5 gap-8">
                             {megaColumns(megaCat.cat, megaCat.label).map((col) => (
                                 <div key={col.title}>
-                                    <p className="eyebrow text-gold mb-4 !text-[10px]">{col.title}</p>
+                                    <p className="eyebrow text-gold-ink mb-4 !text-[10px]">{col.title}</p>
                                     <ul className="space-y-2.5">
                                         {col.links.map((l) => (
                                             <li key={l.label}>
                                                 <Link
                                                     to={l.to}
                                                     onClick={() => setMega(null)}
-                                                    className="group flex items-center gap-2.5 text-sm text-charcoal/70 hover:text-gold transition-colors"
+                                                    className="group flex items-center gap-2.5 text-sm text-charcoal/70 hover:text-gold-ink transition-colors"
                                                 >
                                                     {l.dot && <span className="w-3 h-3 rounded-full border border-charcoal/10 shrink-0" style={{ background: l.dot }} />}
                                                     {l.label}
@@ -330,9 +387,9 @@ export default function Header() {
                                     </NavLink>
                                 ))}
                                 <div className="border-t border-gold/30 pt-5 mt-2 flex flex-col gap-4">
-                                    <Link to="/craftsmanship" onClick={() => setMenuOpen(false)} className="eyebrow text-gold">Craftsmanship</Link>
-                                    <Link to="/verify" onClick={() => setMenuOpen(false)} className="eyebrow text-gold">Verify Certificate</Link>
-                                    <Link to="/nri" onClick={() => setMenuOpen(false)} className="eyebrow text-gold">NRI Collection</Link>
+                                    <Link to="/craftsmanship" onClick={() => setMenuOpen(false)} className="eyebrow text-gold-ink">Craftsmanship</Link>
+                                    <Link to="/verify" onClick={() => setMenuOpen(false)} className="eyebrow text-gold-ink">Verify Certificate</Link>
+                                    <Link to="/nri" onClick={() => setMenuOpen(false)} className="eyebrow text-gold-ink">NRI Collection</Link>
                                 </div>
                             </nav>
                         </motion.aside>

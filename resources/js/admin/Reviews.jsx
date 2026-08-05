@@ -45,20 +45,20 @@ export default function Reviews() {
                                         <span className="text-sm font-medium">{r.name}</span>
                                         <StatusBadge status={r.status} />
                                     </div>
-                                    {r.product && <p className="text-xs text-gold mt-0.5">on <Link to={`/admin/products/${r.product.id}`} className="underline">{r.product.name}</Link></p>}
+                                    {r.product && <p className="text-xs text-gold-ink mt-0.5">on <Link to={`/admin/products/${r.product.id}`} className="underline">{r.product.name}</Link></p>}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {r.status !== 'approved' && <button onClick={() => setStatus(r.id, 'approved')} className="text-xs text-emerald-700 hover:underline">Approve</button>}
-                                    {r.status !== 'rejected' && <button onClick={() => setStatus(r.id, 'rejected')} className="text-xs text-charcoal/50 hover:underline">Reject</button>}
+                                    {r.status !== 'rejected' && <button onClick={() => setStatus(r.id, 'rejected')} className="text-xs text-charcoal/60 hover:underline">Reject</button>}
                                     <button onClick={() => remove(r.id)} className="text-xs text-maroon/70 hover:text-maroon">Delete</button>
                                 </div>
                             </div>
                             {r.title && <p className="font-medium text-sm mt-2">{r.title}</p>}
                             <p className="text-sm text-charcoal/70 mt-1">{r.body}</p>
-                            <p className="text-[11px] text-charcoal/40 mt-2">{r.email} · {new Date(r.created_at).toLocaleString('en-IN')}</p>
+                            <p className="text-[11px] text-charcoal/60 mt-2">{r.email} · {new Date(r.created_at).toLocaleString('en-IN')}</p>
                         </div>
                     ))}
-                    {data?.reviews?.data?.length === 0 && <p className="py-8 text-center text-charcoal/40 text-sm">No reviews.</p>}
+                    {data?.reviews?.data?.length === 0 && <p className="py-8 text-center text-charcoal/60 text-sm">No reviews.</p>}
                 </div>
                 <Pagination meta={data?.reviews} onPage={(p) => setParam('page', String(p))} />
             </Card>

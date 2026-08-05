@@ -65,6 +65,55 @@ class RazorpayGateway
         ]);
     }
 
+    /**
+     * Return money against a captured payment. Partial refunds are allowed, so
+     * the amount is always sent explicitly rather than relying on Razorpay's
+     * "omit for full refund" default.
+     *
+     * $idempotencyKey is our own refund row id. If the connection drops after
+     * Razorpay accepted the request, retrying with the same key returns the
+     * original refund instead of sending the money twice.
+     *
+     * @return array{gateway_refund_id: ?string, status: string, payload: ?array}
+     */
+    public function refund(Payment $payment, float $amount, string $idempotencyKey, ?string $reason = null): array
+    {
+        if (! $this->enabled()) {
+            return [
+                'gateway_refund_id' => 'stub_rfnd_'.Str::random(12),
+                'status' => 'processed',
+                'payload' => ['demo' => true, 'amount' => $amount, 'reason' => $reason],
+            ];
+        }
+
+        if (! $payment->gateway_payment_id) {
+            throw new RuntimeException('This payment has no gateway payment id, so it cannot be refunded.');
+        }
+
+        $response = Http::withBasicAuth(config('services.razorpay.key_id'), config('services.razorpay.key_secret'))
+            ->withHeaders(['X-Razorpay-Idempotency-Key' => $idempotencyKey])
+            ->post("https://api.razorpay.com/v1/payments/{$payment->gateway_payment_id}/refund", [
+                'amount' => (int) round($amount * 100), // paise
+                'speed' => 'normal',
+                'notes' => array_filter([
+                    'order_no' => $payment->order?->order_no,
+                    'reason' => $reason,
+                ]),
+            ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Refund failed at the gateway: '.$response->body());
+        }
+
+        return [
+            'gateway_refund_id' => $response->json('id'),
+            // Razorpay returns 'pending' for refunds still being settled and
+            // 'processed' once the money is on its way back.
+            'status' => $response->json('status') === 'processed' ? 'processed' : 'pending',
+            'payload' => $response->json(),
+        ];
+    }
+
     /** Verify the checkout callback signature (HMAC-SHA256, timing-safe). */
     public function verifySignature(string $gatewayOrderId, string $paymentId, string $signature): bool
     {

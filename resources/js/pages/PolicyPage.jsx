@@ -28,7 +28,7 @@ export default function PolicyPage() {
                         </Reveal>
                     ))}
                 </div>
-                <p className="text-[11px] text-charcoal/40 mt-16 pt-8 border-t border-gold/20 leading-relaxed">
+                <p className="text-[11px] text-charcoal/60 mt-16 pt-8 border-t border-gold/20 leading-relaxed">
                     This policy is provided for guidance and may be updated. For any query, please write to
                     care@clavira.in or reach us through the Contact page.
                 </p>

@@ -35,7 +35,7 @@ export default function CraftsmanshipPage() {
             {/* Process */}
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-20">
                 <Reveal className="text-center mb-14">
-                    <p className="eyebrow text-gold mb-3">Precision Manufacturing</p>
+                    <p className="eyebrow text-gold-ink mb-3">Precision Manufacturing</p>
                     <h2 className="font-display text-3xl md:text-4xl gold-rule">Where Technology Meets Tradition</h2>
                 </Reveal>
                 <div className="grid md:grid-cols-3 gap-8">
@@ -48,7 +48,7 @@ export default function CraftsmanshipPage() {
                     ))}
                 </div>
                 <Reveal className="text-center mt-10">
-                    <p className="text-sm text-charcoal/50 italic">
+                    <p className="text-sm text-charcoal/60 italic">
                         Our manufacturing is certified to international quality standards — every piece inspected
                         under 10x magnification before leaving our atelier.
                     </p>
@@ -75,7 +75,7 @@ export default function CraftsmanshipPage() {
             {/* Standards */}
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-20">
                 <Reveal className="text-center mb-14">
-                    <p className="eyebrow text-gold mb-3">International Finishing Standards</p>
+                    <p className="eyebrow text-gold-ink mb-3">International Finishing Standards</p>
                     <h2 className="font-display text-3xl md:text-4xl gold-rule">Engineered to Perfection. Finished to Shine.</h2>
                 </Reveal>
                 <div className="grid md:grid-cols-2 gap-6">

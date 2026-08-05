@@ -42,8 +42,8 @@ export default function Consultations() {
                         <div key={c.id} className="border border-gold/15 p-4">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
-                                    <p className="text-sm font-medium">{c.name} <span className="text-charcoal/40 font-normal">· {c.email} · {c.phone} · {c.country}</span></p>
-                                    <p className="text-xs text-gold mt-0.5 capitalize">{c.type}{c.preferred_date ? ` · ${new Date(c.preferred_date).toLocaleDateString('en-IN')}` : ''}{c.preferred_time ? ` · ${c.preferred_time}` : ''}</p>
+                                    <p className="text-sm font-medium">{c.name} <span className="text-charcoal/60 font-normal">· {c.email} · {c.phone} · {c.country}</span></p>
+                                    <p className="text-xs text-gold-ink mt-0.5 capitalize">{c.type}{c.preferred_date ? ` · ${new Date(c.preferred_date).toLocaleDateString('en-IN')}` : ''}{c.preferred_time ? ` · ${c.preferred_time}` : ''}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <StatusBadge status={c.status} />
@@ -53,10 +53,10 @@ export default function Consultations() {
                                 </div>
                             </div>
                             {c.message && <p className="text-sm text-charcoal/70 mt-2 whitespace-pre-line">{c.message}</p>}
-                            <p className="text-[11px] text-charcoal/40 mt-2">{new Date(c.created_at).toLocaleString('en-IN')}</p>
+                            <p className="text-[11px] text-charcoal/60 mt-2">{new Date(c.created_at).toLocaleString('en-IN')}</p>
                         </div>
                     ))}
-                    {data?.consultations?.data?.length === 0 && <p className="py-8 text-center text-charcoal/40 text-sm">No consultation requests.</p>}
+                    {data?.consultations?.data?.length === 0 && <p className="py-8 text-center text-charcoal/60 text-sm">No consultation requests.</p>}
                 </div>
                 <Pagination meta={data?.consultations} onPage={(p) => setParam('page', String(p))} />
             </Card>

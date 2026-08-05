@@ -51,7 +51,7 @@ export default function ProductReviews({ slug }) {
                             <span className="text-sm text-charcoal/60">{summary.average} · {summary.count} review{summary.count === 1 ? '' : 's'}</span>
                         </div>
                     ) : (
-                        <p className="text-sm text-charcoal/50 mt-2">Be the first to review this piece.</p>
+                        <p className="text-sm text-charcoal/60 mt-2">Be the first to review this piece.</p>
                     )}
                 </div>
                 <button className="btn-outline !py-2.5 !px-5" onClick={() => { setShowForm((v) => !v); setMsg(''); }}>
@@ -59,7 +59,7 @@ export default function ProductReviews({ slug }) {
                 </button>
             </div>
 
-            {msg && <p className="text-gold bg-gold-pale/50 border border-gold/20 px-4 py-3 text-sm mb-8">{msg}</p>}
+            {msg && <p className="text-gold-ink bg-gold-pale/50 border border-gold/20 px-4 py-3 text-sm mb-8">{msg}</p>}
 
             {showForm && (
                 <form onSubmit={submit} className="border border-gold/25 p-6 mb-10 max-w-2xl space-y-4">
@@ -76,14 +76,14 @@ export default function ProductReviews({ slug }) {
                         </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
-                        <input required placeholder="Your name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
-                        <input required type="email" placeholder="Email (not published)" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className="border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
+                        <input required aria-label="Your name" placeholder="Your name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
+                        <input required type="email" aria-label="Email (not published)" placeholder="Email (not published)" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className="border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
                     </div>
-                    <input placeholder="Title (optional)" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
-                    <textarea required rows="4" placeholder="Share your experience…" value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} className="w-full border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
+                    <input aria-label="Review title (optional)" placeholder="Title (optional)" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
+                    <textarea required rows="4" aria-label="Your review" placeholder="Share your experience…" value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} className="w-full border border-gold/30 focus:border-gold px-4 py-3 bg-white" />
                     {error && <p className="text-sm text-maroon">{error}</p>}
                     <button type="submit" disabled={busy} className="btn-gold">{busy ? 'Submitting…' : 'Submit review'}</button>
-                    <p className="text-[11px] text-charcoal/40">Reviews are published after a quick moderation check.</p>
+                    <p className="text-[11px] text-charcoal/60">Reviews are published after a quick moderation check.</p>
                 </form>
             )}
 
@@ -99,7 +99,7 @@ export default function ProductReviews({ slug }) {
                                     Verified Purchase
                                 </span>
                             )}
-                            <span className="text-xs text-charcoal/40">{new Date(r.created_at).toLocaleDateString('en-IN')}</span>
+                            <span className="text-xs text-charcoal/60">{new Date(r.created_at).toLocaleDateString('en-IN')}</span>
                         </div>
                         {r.title && <p className="font-display text-lg mt-2">{r.title}</p>}
                         <p className="text-sm text-charcoal/70 mt-1 leading-relaxed">{r.body}</p>

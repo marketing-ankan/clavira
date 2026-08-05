@@ -73,23 +73,23 @@ export default function AccountAddresses() {
                     {error && <p className="text-sm text-maroon">{error}</p>}
                     <div className="flex gap-3">
                         <button type="submit" className="btn-gold !py-2.5 !px-6">Save</button>
-                        <button type="button" onClick={() => setShowForm(false)} className="text-sm text-charcoal/50 hover:text-charcoal">Cancel</button>
+                        <button type="button" onClick={() => setShowForm(false)} className="text-sm text-charcoal/60 hover:text-charcoal">Cancel</button>
                     </div>
                 </form>
             )}
 
-            {addresses.length === 0 && !showForm && <p className="text-charcoal/50 text-sm">No saved addresses yet.</p>}
+            {addresses.length === 0 && !showForm && <p className="text-charcoal/60 text-sm">No saved addresses yet.</p>}
 
             <div className="grid sm:grid-cols-2 gap-4">
                 {addresses.map((a) => (
                     <div key={a.id} className="border border-gold/20 p-4 text-sm relative">
-                        {a.is_default && <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider bg-gold-pale text-gold px-2 py-0.5">Default</span>}
+                        {a.is_default && <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider bg-gold-pale text-gold-ink px-2 py-0.5">Default</span>}
                         <p className="font-medium">{a.name}</p>
                         <p className="text-charcoal/60">{a.phone_country_code} {a.phone}</p>
                         <p className="text-charcoal/60 mt-1">{a.line1}{a.line2 ? `, ${a.line2}` : ''}</p>
                         <p className="text-charcoal/60">{a.city}, {a.state} {a.postal_code} · {a.country}</p>
                         <div className="flex gap-4 mt-3">
-                            <button onClick={() => openEdit(a)} className="text-xs text-gold hover:underline">Edit</button>
+                            <button onClick={() => openEdit(a)} className="text-xs text-gold-ink hover:underline">Edit</button>
                             <button onClick={() => remove(a.id)} className="text-xs text-maroon/70 hover:text-maroon">Remove</button>
                         </div>
                     </div>

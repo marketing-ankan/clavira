@@ -32,7 +32,7 @@ export default function Orders() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[640px]">
                         <thead>
-                            <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/50 border-b border-gold/20">
+                            <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/60 border-b border-gold/20">
                                 <th className="py-2 pr-3">Order</th>
                                 <th className="py-2 pr-3">Customer</th>
                                 <th className="py-2 pr-3">Items</th>
@@ -47,12 +47,12 @@ export default function Orders() {
                                     <td className="py-2.5 pr-3"><Link to={`/admin/orders/${o.id}`} className="text-gold font-medium hover:underline">{o.order_no}</Link></td>
                                     <td className="py-2.5 pr-3 text-charcoal/70">{o.email}</td>
                                     <td className="py-2.5 pr-3 text-charcoal/60">{o.items_count}</td>
-                                    <td className="py-2.5 pr-3 text-charcoal/50 text-xs">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                                    <td className="py-2.5 pr-3 text-charcoal/60 text-xs">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                                     <td className="py-2.5 pr-3"><StatusBadge status={o.status} /></td>
                                     <td className="py-2.5 text-right"><Money value={o.total} /></td>
                                 </tr>
                             ))}
-                            {data?.orders?.data?.length === 0 && <tr><td colSpan="6" className="py-8 text-center text-charcoal/40">No orders found.</td></tr>}
+                            {data?.orders?.data?.length === 0 && <tr><td colSpan="6" className="py-8 text-center text-charcoal/60">No orders found.</td></tr>}
                         </tbody>
                     </table>
                 </div>

@@ -103,7 +103,9 @@ class CartController extends Controller
         ]);
 
         $subtotal = round($items->sum('line_total'), 2);
-        $tax = round($subtotal * 0.03, 2); // 3% GST on jewellery
+        // Indicative domestic figure — checkout recomputes by delivery country
+        // (exports are zero-rated GST but pay international shipping).
+        $tax = round($subtotal * (float) config('clavira.gst_rate', 0.03), 2);
 
         return response()->json([
             'items' => $items,

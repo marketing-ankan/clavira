@@ -18,7 +18,7 @@ export function Stat({ label, value, accent = false }) {
     return (
         <div className="bg-white border border-gold/20 px-5 py-4">
             <p className={`font-display text-2xl md:text-3xl ${accent ? 'text-gold' : 'text-charcoal'}`}>{value}</p>
-            <p className="text-[11px] uppercase tracking-[0.16em] text-charcoal/50 mt-1">{label}</p>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-charcoal/60 mt-1">{label}</p>
         </div>
     );
 }
@@ -31,6 +31,8 @@ const STATUS_STYLE = {
     delivered: 'bg-emerald-100 text-emerald-900',
     failed: 'bg-rose-100 text-rose-800',
     cancelled: 'bg-neutral-200 text-neutral-600',
+    refunded: 'bg-violet-100 text-violet-800',
+    processed: 'bg-emerald-100 text-emerald-800',
     new: 'bg-amber-100 text-amber-800',
     contacted: 'bg-sky-100 text-sky-800',
     closed: 'bg-neutral-200 text-neutral-600',

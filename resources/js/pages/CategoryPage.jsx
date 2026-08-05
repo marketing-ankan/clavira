@@ -138,7 +138,7 @@ export default function CategoryPage() {
                             ))}
                         </div>
                         {products?.data?.length === 0 && (
-                            <p className="text-center py-20 font-display text-xl text-charcoal/50">
+                            <p className="text-center py-20 font-display text-xl text-charcoal/60">
                                 No pieces match these filters yet.
                             </p>
                         )}

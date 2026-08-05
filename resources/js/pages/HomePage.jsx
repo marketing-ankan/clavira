@@ -111,7 +111,7 @@ export default function HomePage() {
             {/* ---------- CATEGORIES ---------- */}
             <section className="max-w-7xl mx-auto px-4 lg:px-8 py-24">
                 <Reveal className="text-center mb-14">
-                    <p className="eyebrow text-gold mb-3">Collections</p>
+                    <p className="eyebrow text-gold-ink mb-3">Collections</p>
                     <h2 className="font-display text-3xl md:text-5xl gold-rule">A Curated World of Brilliance</h2>
                 </Reveal>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -176,7 +176,7 @@ export default function HomePage() {
             {/* ---------- PROMISE COUNTERS ---------- */}
             <section id="promise" className="max-w-7xl mx-auto px-4 lg:px-8 py-24">
                 <Reveal className="text-center mb-14">
-                    <p className="eyebrow text-gold mb-3">Our Promise</p>
+                    <p className="eyebrow text-gold-ink mb-3">Our Promise</p>
                     <h2 className="font-display text-3xl md:text-5xl gold-rule">Pure Gold. Guilt-Free Brilliance.</h2>
                 </Reveal>
 
@@ -221,7 +221,7 @@ export default function HomePage() {
             <section className="max-w-7xl mx-auto px-4 lg:px-8 pb-24">
                 <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                     <Reveal variant="left">
-                        <p className="eyebrow text-gold mb-3">Zero Deduction</p>
+                        <p className="eyebrow text-gold-ink mb-3">Zero Deduction</p>
                         <h2 className="font-display text-3xl md:text-4xl leading-tight">
                             Your old gold, honestly valued.
                         </h2>
@@ -244,7 +244,7 @@ export default function HomePage() {
             <section className="bg-ivory-dark/60 py-24">
                 <div className="max-w-7xl mx-auto px-4 lg:px-8">
                     <Reveal className="text-center mb-14">
-                        <p className="eyebrow text-gold mb-3">Special Collections</p>
+                        <p className="eyebrow text-gold-ink mb-3">Special Collections</p>
                         <h2 className="font-display text-3xl md:text-5xl gold-rule">The Clavira Edits</h2>
                     </Reveal>
                     <div className="flex gap-5 overflow-x-auto pb-4 snap-x">

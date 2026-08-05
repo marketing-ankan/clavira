@@ -48,7 +48,7 @@ export default function GoldRatePage() {
                     published rate of the day. Here it is, in full.
                 </p>
                 {updated && (
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 mt-6">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/55 mt-6">
                         Last updated {updated} IST
                     </p>
                 )}
@@ -61,13 +61,13 @@ export default function GoldRatePage() {
                         const delta = change?.[key];
                         return (
                             <Reveal key={key} delay={i * 0.06} className="bg-ivory text-center py-9 px-4">
-                                <p className="text-[11px] uppercase tracking-[0.2em] text-charcoal/55">
+                                <p className="text-[11px] uppercase tracking-[0.2em] text-charcoal/60">
                                     {label}
                                 </p>
                                 <p className="font-display text-3xl md:text-4xl text-gold mt-3">
                                     {rate ? formatPrice(rate[key]) : '—'}
                                 </p>
-                                <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/40 mt-1">
+                                <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/60 mt-1">
                                     per gram
                                 </p>
                                 {typeof delta === 'number' && delta !== 0 && (
@@ -75,13 +75,13 @@ export default function GoldRatePage() {
                                         {delta > 0 ? '▲' : '▼'} {formatPrice(Math.abs(delta))}
                                     </p>
                                 )}
-                                <p className="text-[11px] text-charcoal/40 mt-3">{sub}</p>
+                                <p className="text-[11px] text-charcoal/60 mt-3">{sub}</p>
                             </Reveal>
                         );
                     })}
                 </div>
                 {change?.since && (
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-charcoal/45 text-center mt-5">
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-charcoal/60 text-center mt-5">
                         Change since {change.since}
                     </p>
                 )}
@@ -91,7 +91,7 @@ export default function GoldRatePage() {
             <section className="bg-ivory-dark/50 py-20">
                 <div className="max-w-6xl mx-auto px-4 lg:px-8">
                     <Reveal className="text-center mb-10">
-                        <p className="eyebrow text-gold mb-3">Movement</p>
+                        <p className="eyebrow text-gold-ink mb-3">Movement</p>
                         <h2 className="font-display text-3xl md:text-5xl gold-rule">How the Rate Has Moved</h2>
                     </Reveal>
 
@@ -141,7 +141,7 @@ export default function GoldRatePage() {
             {/* ---------- EXCHANGE CALCULATOR ---------- */}
             <section className="max-w-6xl mx-auto px-4 lg:px-8 py-20">
                 <Reveal className="text-center mb-12">
-                    <p className="eyebrow text-gold mb-3">Your Gold</p>
+                    <p className="eyebrow text-gold-ink mb-3">Your Gold</p>
                     <h2 className="font-display text-3xl md:text-5xl gold-rule">Value It Instantly</h2>
                 </Reveal>
                 <Reveal variant="zoom" className="max-w-3xl mx-auto">
@@ -163,7 +163,7 @@ export default function GoldRatePage() {
                             number behind every valuation is one you can see — before, during and
                             after your purchase.
                         </p>
-                        <p className="text-white/45 mt-5 text-sm leading-relaxed">
+                        <p className="text-white/55 mt-5 text-sm leading-relaxed">
                             Rates are quoted in Indian rupees per gram and exclude GST. Making
                             charges and stone value, where applicable, are itemised separately on
                             each piece.

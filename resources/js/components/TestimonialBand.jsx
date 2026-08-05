@@ -15,27 +15,48 @@ function Stars({ n }) {
     );
 }
 
-/** Auto-advancing customer-voice carousel fed by approved reviews. */
+/**
+ * Auto-advancing customer-voice carousel fed by approved reviews.
+ *
+ * WCAG 2.2.2 (Level A) requires any content that auto-updates for more than
+ * five seconds to have a user-operable way to pause it — so there is a real
+ * pause button, and hovering or focusing the band stops it too. Visitors who
+ * have asked their OS for reduced motion never get the animation at all.
+ */
 export default function TestimonialBand({ testimonials }) {
     const [idx, setIdx] = useState(0);
+    const [paused, setPaused] = useState(false);
+    const [hold, setHold] = useState(false);
+
+    const reduceMotion = typeof window !== 'undefined'
+        && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
     useEffect(() => {
         if (!testimonials || testimonials.length < 2) return;
+        if (paused || hold || reduceMotion) return;
+
         const t = setInterval(() => setIdx((i) => (i + 1) % testimonials.length), 6000);
         return () => clearInterval(t);
-    }, [testimonials]);
+    }, [testimonials, paused, hold, reduceMotion]);
 
     if (!testimonials?.length) return null;
     const r = testimonials[idx];
 
     return (
-        <section className="bg-charcoal text-white py-20 overflow-hidden" aria-label="Customer words">
+        <section
+            className="bg-charcoal text-white py-20 overflow-hidden"
+            aria-label="Customer words"
+            onMouseEnter={() => setHold(true)}
+            onMouseLeave={() => setHold(false)}
+            onFocusCapture={() => setHold(true)}
+            onBlurCapture={() => setHold(false)}
+        >
             <div className="max-w-3xl mx-auto px-4 text-center relative">
                 <Reveal>
                     <p className="eyebrow text-gold-light mb-3">Customer Words</p>
                     <h2 className="font-display text-3xl md:text-4xl gold-rule">Loved. Worn. Treasured.</h2>
                 </Reveal>
-                <div className="mt-12 min-h-[190px]">
+                <div className="mt-12 min-h-[190px]" aria-live="polite" aria-atomic="true">
                     <AnimatePresence mode="wait">
                         <motion.blockquote
                             key={r.id}
@@ -63,17 +84,35 @@ export default function TestimonialBand({ testimonials }) {
                     </AnimatePresence>
                 </div>
                 {testimonials.length > 1 && (
-                    <div className="flex justify-center gap-2.5 mt-8" role="tablist" aria-label="Testimonials">
-                        {testimonials.map((t, i) => (
-                            <button
-                                key={t.id}
-                                onClick={() => setIdx(i)}
-                                aria-label={`Testimonial ${i + 1}`}
-                                aria-selected={i === idx}
-                                role="tab"
-                                className={`h-1 transition-all duration-500 ${i === idx ? 'w-8 bg-gold' : 'w-3 bg-white/25 hover:bg-white/50'}`}
-                            />
-                        ))}
+                    <div className="flex items-center justify-center gap-4 mt-8">
+                        <button
+                            type="button"
+                            onClick={() => setPaused((p) => !p)}
+                            aria-pressed={paused}
+                            className="text-white/70 hover:text-white p-1.5 -m-1.5"
+                        >
+                            <span className="sr-only">
+                                {paused ? 'Resume the testimonial carousel' : 'Pause the testimonial carousel'}
+                            </span>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                {paused
+                                    ? <path d="M8 5v14l11-7z" />
+                                    : <><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></>}
+                            </svg>
+                        </button>
+
+                        <div className="flex justify-center gap-2.5">
+                            {testimonials.map((t, i) => (
+                                <button
+                                    key={t.id}
+                                    type="button"
+                                    onClick={() => setIdx(i)}
+                                    aria-label={`Show testimonial ${i + 1} of ${testimonials.length}`}
+                                    aria-current={i === idx}
+                                    className={`h-1 transition-all duration-500 ${i === idx ? 'w-8 bg-gold' : 'w-3 bg-white/40 hover:bg-white/60'}`}
+                                />
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>

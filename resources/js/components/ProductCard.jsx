@@ -43,7 +43,7 @@ export default function ProductCard({ product }) {
                     </p>
                     {/* Two lines are always reserved so the CTAs across a row sit
                         on one baseline regardless of how long the name is. */}
-                    <h3 className="font-display uppercase text-[12px] sm:text-[13px] xl:text-[14px] tracking-[0.08em] sm:tracking-[0.12em] xl:tracking-[0.16em] leading-[1.3] mt-2 line-clamp-2 min-h-[2.6em] text-charcoal group-hover:text-gold transition-colors duration-500">
+                    <h3 className="font-display uppercase text-[12px] sm:text-[13px] xl:text-[14px] tracking-[0.08em] sm:tracking-[0.12em] xl:tracking-[0.16em] leading-[1.3] mt-2 line-clamp-2 min-h-[2.6em] text-charcoal group-hover:text-gold-ink transition-colors duration-500">
                         {product.name}
                     </h3>
                     <p className="font-display italic text-[15px] xl:text-[17px] text-gold-ink mt-1">

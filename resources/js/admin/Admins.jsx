@@ -48,13 +48,13 @@ export default function Admins() {
         }
     };
 
-    if (!data) return <p className="text-charcoal/40">Loading…</p>;
+    if (!data) return <p className="text-charcoal/60">Loading…</p>;
 
     return (
         <div className="space-y-6 max-w-3xl">
             <div>
                 <h1 className="font-display text-2xl">Admin users</h1>
-                <p className="text-sm text-charcoal/55 mt-1">
+                <p className="text-sm text-charcoal/60 mt-1">
                     Admin access is invite-only and limited to{' '}
                     <strong>{data.allowed_domains.join(', ')}</strong> email addresses. Owner accounts cannot be revoked.
                 </p>
@@ -66,15 +66,15 @@ export default function Admins() {
                         {data.admins.map((a) => (
                             <tr key={a.id} className="border-b border-gold/10 last:border-0">
                                 <td className="py-3 pr-3">
-                                    <p className="font-medium">{a.name}{a.id === user.id && <span className="text-charcoal/40 font-normal"> (you)</span>}</p>
-                                    <p className="text-xs text-charcoal/50">{a.email}</p>
+                                    <p className="font-medium">{a.name}{a.id === user.id && <span className="text-charcoal/60 font-normal"> (you)</span>}</p>
+                                    <p className="text-xs text-charcoal/60">{a.email}</p>
                                 </td>
                                 <td className="py-3 pr-3">
-                                    {a.is_owner ? <span className="text-[10px] uppercase tracking-wider bg-gold-pale text-gold px-2 py-1">Owner</span> : <StatusBadge status={a.status} />}
+                                    {a.is_owner ? <span className="text-[10px] uppercase tracking-wider bg-gold-pale text-gold-ink px-2 py-1">Owner</span> : <StatusBadge status={a.status} />}
                                 </td>
                                 <td className="py-3 text-right whitespace-nowrap">
                                     {a.status === 'pending' && (
-                                        <button onClick={() => resend(a.id)} className="text-xs text-gold hover:underline mr-4">Resend link</button>
+                                        <button onClick={() => resend(a.id)} className="text-xs text-gold-ink hover:underline mr-4">Resend link</button>
                                     )}
                                     {!a.is_owner && a.id !== user.id && (
                                         <button onClick={() => revoke(a.id, a.email)} className="text-xs text-maroon/70 hover:text-maroon">Revoke</button>
@@ -93,7 +93,7 @@ export default function Admins() {
                     <button type="submit" disabled={busy} className="btn-gold !py-2.5">{busy ? 'Sending…' : 'Send invite'}</button>
                 </form>
                 {error && <p className="text-sm text-maroon mt-3">{error}</p>}
-                {notice && <p className="text-sm text-gold mt-3">{notice}</p>}
+                {notice && <p className="text-sm text-gold-ink mt-3">{notice}</p>}
                 {inviteUrl && (
                     <div className="mt-3 text-xs bg-ivory-dark/60 border border-gold/20 p-3 break-all">
                         <p className="text-charcoal/60 mb-1">Set-password link (email is not configured yet — share this securely):</p>

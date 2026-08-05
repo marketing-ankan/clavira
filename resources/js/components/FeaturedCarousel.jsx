@@ -30,9 +30,9 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
             <div className="grid lg:grid-cols-[300px_1fr] xl:grid-cols-[360px_1fr] gap-8 lg:gap-4 items-center pl-6 sm:pl-10 lg:pl-16">
                 {/* Left: title, pinned to the far left */}
                 <Reveal variant="left" className="max-w-sm pr-4">
-                    <p className="eyebrow text-gold mb-3">{eyebrow}</p>
+                    <p className="eyebrow text-gold-ink mb-3">{eyebrow}</p>
                     <h2 className="font-display text-3xl md:text-4xl lg:text-5xl leading-tight">{title}</h2>
-                    <p className="text-charcoal/55 mt-5 text-sm leading-relaxed">
+                    <p className="text-charcoal/60 mt-5 text-sm leading-relaxed">
                         A rotating showcase of our most exceptional creations — each a study in
                         light, precision and rare, certified stones.
                     </p>
@@ -50,6 +50,11 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
                                 animate={POS(offset)}
                                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                                 style={{ pointerEvents: offset === 0 ? 'auto' : 'none' }}
+                                // pointer-events + opacity hide a slide visually but leave its
+                                // links focusable; without `inert` a keyboard user tabs through
+                                // every off-screen product.
+                                inert={offset !== 0 || undefined}
+                                aria-hidden={offset !== 0 || undefined}
                             >
                                 <BigCard product={p} />
                             </motion.div>
@@ -65,14 +70,14 @@ export default function FeaturedCarousel({ products = [], eyebrow = 'Signature P
                     <Ctrl dir={1} onClick={() => go(active + 1)} disabled={active === n - 1} />
                 </div>
                 {/* dash pagination */}
-                <div className="flex items-center gap-2" role="tablist" aria-label="Signature pieces">
+                <div className="flex items-center gap-2" aria-label="Signature pieces">
                     {products.map((p, i) => (
                         <button
                             key={p.id}
+                            type="button"
                             onClick={() => go(i)}
-                            aria-label={`Go to ${p.name}`}
-                            aria-selected={i === active}
-                            role="tab"
+                            aria-label={`Show ${p.name}`}
+                            aria-current={i === active}
                             className="group py-2"
                         >
                             <span className={`block h-px transition-all duration-500 ${i === active ? 'w-9 bg-gold' : 'w-6 bg-charcoal/25 group-hover:bg-charcoal/50'}`} />
@@ -113,7 +118,7 @@ function Ctrl({ dir, onClick, disabled }) {
             onClick={onClick}
             disabled={disabled}
             aria-label={dir < 0 ? 'Previous' : 'Next'}
-            className="p-1.5 text-charcoal/55 hover:text-gold transition-colors disabled:opacity-25 disabled:pointer-events-none"
+            className="p-1.5 text-charcoal/60 hover:text-gold transition-colors disabled:opacity-25 disabled:pointer-events-none"
         >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
                 <path d={dir < 0 ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} strokeLinecap="round" strokeLinejoin="round" />

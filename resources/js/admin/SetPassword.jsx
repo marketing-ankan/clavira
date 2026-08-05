@@ -39,13 +39,13 @@ export default function SetPassword() {
         <div className="min-h-screen admin-auth-bg flex items-center justify-center px-4">
             <div className="w-full max-w-sm bg-ivory p-8 border-t-2 border-gold text-center shadow-2xl">
                 <img src="/images/brand/clavira-wordmark.png" alt="CLAVIRA" className="h-8 mx-auto" />
-                <p className="text-[11px] uppercase tracking-[0.24em] text-gold mt-3 mb-6">Admin Access</p>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-gold-ink mt-3 mb-6">Admin Access</p>
                 {children}
             </div>
         </div>
     );
 
-    if (state.loading) return <Shell><p className="text-charcoal/50">Checking your link…</p></Shell>;
+    if (state.loading) return <Shell><p className="text-charcoal/60">Checking your link…</p></Shell>;
 
     if (!state.valid) {
         return (
@@ -69,7 +69,7 @@ export default function SetPassword() {
     return (
         <Shell>
             <p className="text-sm text-charcoal/70 mb-1">Welcome, {state.name}</p>
-            <p className="text-xs text-charcoal/50 mb-6">{state.email}</p>
+            <p className="text-xs text-charcoal/60 mb-6">{state.email}</p>
             <form onSubmit={submit} className="space-y-4 text-left">
                 <Field label="Create password">
                     <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
@@ -80,7 +80,7 @@ export default function SetPassword() {
                 {error && <p className="text-sm text-maroon">{error}</p>}
                 <button type="submit" disabled={busy} className="btn-gold w-full">{busy ? 'Saving…' : 'Set password & activate'}</button>
             </form>
-            <p className="text-[10px] text-charcoal/40 mt-4">Minimum 8 characters. This link works once.</p>
+            <p className="text-[10px] text-charcoal/60 mt-4">Minimum 8 characters. This link works once.</p>
         </Shell>
     );
 }

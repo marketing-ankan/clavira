@@ -60,7 +60,7 @@ export default function ConsultationPage() {
                                     <label key={value} className={`border p-4 cursor-pointer transition-colors ${form.type === value ? 'border-gold bg-gold/5' : 'border-gold/25 hover:border-gold/50'}`}>
                                         <input type="radio" name="type" value={value} checked={form.type === value} onChange={set('type')} className="hidden" />
                                         <p className="font-display text-lg">{label}</p>
-                                        <p className="text-xs text-charcoal/55 mt-1">{desc}</p>
+                                        <p className="text-xs text-charcoal/60 mt-1">{desc}</p>
                                     </label>
                                 ))}
                             </div>
@@ -85,7 +85,7 @@ export default function ConsultationPage() {
                         <textarea rows="3" placeholder="Tell us what you have in mind (optional)" value={form.message} onChange={set('message')} className={cls} />
                         {error && <p className="text-sm text-maroon">{error}</p>}
                         <button type="submit" disabled={busy} className="btn-gold w-full">{busy ? 'Booking…' : 'Request appointment'}</button>
-                        <p className="text-[11px] text-center text-charcoal/40">Our consultant confirms within 24 hours. No payment required to book.</p>
+                        <p className="text-[11px] text-center text-charcoal/60">Our consultant confirms within 24 hours. No payment required to book.</p>
                     </form>
                 )}
             </section>

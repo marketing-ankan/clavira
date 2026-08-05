@@ -46,7 +46,7 @@ export default function Products() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[640px]">
                         <thead>
-                            <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/50 border-b border-gold/20">
+                            <tr className="text-left text-[10px] uppercase tracking-[0.16em] text-charcoal/60 border-b border-gold/20">
                                 <th className="py-2 pr-3">Product</th>
                                 <th className="py-2 pr-3">Category</th>
                                 <th className="py-2 pr-3">SKU</th>
@@ -68,7 +68,7 @@ export default function Products() {
                                             </Link>
                                         </td>
                                         <td className="py-2.5 pr-3 text-charcoal/60">{p.category?.name}</td>
-                                        <td className="py-2.5 pr-3 text-charcoal/50 text-xs">{p.sku}</td>
+                                        <td className="py-2.5 pr-3 text-charcoal/60 text-xs">{p.sku}</td>
                                         <td className="py-2.5 pr-3 text-right"><Money value={p.base_price} /></td>
                                         <td className="py-2.5 pr-3 text-center text-charcoal/60">{p.variants_count}</td>
                                         <td className="py-2.5 text-center">

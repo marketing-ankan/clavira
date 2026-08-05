@@ -67,7 +67,7 @@ export default function VerifyPage() {
                     <div className="mt-10 border border-gold/40 bg-white p-8">
                         <div className="flex items-center justify-between border-b border-gold/20 pb-4">
                             <div>
-                                <p className="eyebrow text-gold">Verified ✦ Authentic</p>
+                                <p className="eyebrow text-gold-ink">Verified ✦ Authentic</p>
                                 <h2 className="font-display text-2xl mt-1">{result.certificate.item_name}</h2>
                             </div>
                             {result.certificate.product_image && (
@@ -97,7 +97,7 @@ export default function VerifyPage() {
 function Row({ label, value }) {
     return (
         <div className="flex justify-between gap-6">
-            <dt className="uppercase tracking-[0.15em] text-[11px] text-charcoal/50 capitalize">{label}</dt>
+            <dt className="uppercase tracking-[0.15em] text-[11px] text-charcoal/60 capitalize">{label}</dt>
             <dd className="text-right font-medium">{value}</dd>
         </div>
     );
