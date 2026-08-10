@@ -1,0 +1,397 @@
+{
+  "name": "Clavira — Synology photo ingest",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Run ingest",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-460, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s1",
+              "name": "sourceFolder",
+              "value": "C:\\SynologyDrive2026\\SynologyDrive\\Jewelry design download rendering",
+              "type": "string"
+            },
+            {
+              "id": "s2",
+              "name": "workDir",
+              "value": "D:\\clavira-ingest",
+              "type": "string"
+            },
+            {
+              "id": "s3",
+              "name": "scriptDir",
+              "value": "C:\\xampp2\\htdocs\\clavira\\deploy\\n8n",
+              "type": "string"
+            },
+            {
+              "id": "s4",
+              "name": "apiBase",
+              "value": "https://clavira.in",
+              "type": "string"
+            },
+            {
+              "id": "s5",
+              "name": "ingestToken",
+              "value": "PUT-THE-INGEST-TOKEN-HERE",
+              "type": "string"
+            },
+            {
+              "id": "s6",
+              "name": "manifestSize",
+              "value": 500,
+              "type": "number"
+            },
+            {
+              "id": "s7",
+              "name": "uploadBatch",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "id": "s8",
+              "name": "batch",
+              "value": "={{ 'n8n-' + $now.toFormat('yyyyLLdd-HHmmss') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-240, 300],
+      "notes": "Every knob for the run lives here.\n\nmanifestSize must stay <= config('ingest.max_manifest') on the server (500).\nuploadBatch bounds how many photos n8n holds in memory at once — raise it for a fast LAN, lower it if n8n starts swapping.\n\nMove ingestToken to a credential before this workflow leaves your machine: values in a Set node are stored in plain text and travel with any export.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -File \"{{ $json.scriptDir }}\\extract-archives.ps1\" -Source \"{{ $json.sourceFolder }}\" -WorkDir \"{{ $json.workDir }}\""
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Extract archives",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [-20, 300],
+      "notes": "Unzipping happens in PowerShell, not in n8n's compression node: that node materialises every archive member as an in-memory binary item, which is fine for a dozen files and fatal for ten thousand.\n\nRe-running is cheap — an archive whose timestamp has not moved is skipped.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -File \"{{ $('Settings').first().json.scriptDir }}\\scan-photos.ps1\" -Root \"{{ $('Settings').first().json.workDir }}\""
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Scan + hash",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "notes": "Emits NDJSON: one {name, sha256, bytes} per image.\n\nThe first run reads every byte on the NAS to hash it — for 10k photos expect tens of minutes. Every run after that reuses a path+size+mtime cache and finishes in seconds, which is what makes 'just run it again' a safe answer to a failed batch.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// PowerShell hands back one JSON object per line. NDJSON rather than one big\n// array so a truncated scan fails on the line it died on instead of making the\n// whole manifest unparseable.\nconst stdout = $input.first().json.stdout || '';\n\nconst files = [];\nconst bad = [];\n\nfor (const line of stdout.split(/\\r?\\n/)) {\n  const trimmed = line.trim();\n  if (!trimmed) continue;\n  try {\n    const row = JSON.parse(trimmed);\n    if (row && row.name && row.sha256) files.push(row);\n  } catch (e) {\n    bad.push(trimmed.slice(0, 200));\n  }\n}\n\nif (bad.length) {\n  throw new Error(`${bad.length} unparseable manifest line(s). First: ${bad[0]}`);\n}\n\nif (!files.length) {\n  throw new Error('The scan found no images. Check workDir points at the extracted folder.');\n}\n\n// One item per BATCH, not per file: /api/ingest/plan answers up to 500 files in\n// a single round trip, so 10,000 photos cost 20 requests instead of 10,000.\nconst size = $('Settings').first().json.manifestSize;\nconst batches = [];\n\nfor (let i = 0; i < files.length; i += size) {\n  batches.push({\n    json: {\n      batch: $('Settings').first().json.batch,\n      files: files.slice(i, i + size),\n      part: batches.length + 1,\n      totalFiles: files.length,\n    },\n  });\n}\n\nreturn batches;"
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Manifest → batches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.apiBase }}/api/ingest/plan",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Ingest-Token",
+              "value": "={{ $('Settings').first().json.ingestToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ batch: $json.batch, files: $json.files }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "POST /ingest/plan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300],
+      "notes": "Names and hashes only — no image bytes.\n\nThis is the call that makes a 10k run survivable: it answers 'which of these do you not already have, and which SKU does each belong to' before a single photo crosses the wire. A re-run gets told 'all duplicates' for a few hundred KB of JSON.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flatten every batch's verdict into one item per file worth uploading, and\n// keep the skips so the run can report WHY 400 photos never moved.\nconst settings = $('Settings').first().json;\n\nconst accept = [];\nconst skipped = {};\nconst unknownSkus = {};\n\nfor (const item of $input.all()) {\n  for (const row of item.json.accept || []) {\n    accept.push({\n      json: {\n        ...row,\n        batch: settings.batch,\n        // Absolute path for the read node. The manifest name is relative to\n        // workDir, which is exactly what the server matches SKUs against.\n        path: settings.workDir.replace(/[\\\\/]+$/, '') + '\\\\' + row.name.replace(/\\//g, '\\\\'),\n      },\n    });\n  }\n\n  for (const row of item.json.skip || []) {\n    skipped[row.reason] = (skipped[row.reason] || 0) + 1;\n    if (row.reason === 'unknown_sku') {\n      const key = (row.tried || [row.sku]).join(' | ');\n      unknownSkus[key] = (unknownSkus[key] || 0) + 1;\n    }\n  }\n}\n\n// Stash the skip tally where the final summary can reach it.\nconst staticData = $getWorkflowStaticData('global');\nstaticData.lastSkips = skipped;\nstaticData.lastUnknownSkus = unknownSkus;\n\nif (!accept.length) {\n  // Not an error: a re-run with nothing new is the expected happy path.\n  return [{ json: { nothingToUpload: true, skipped, unknownSkus } }];\n}\n\nreturn accept;"
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "Accepted → files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.nothingToUpload }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "notTrue",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000008",
+      "name": "Anything to upload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": "={{ $('Settings').first().json.uploadBatch }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000009",
+      "name": "Upload loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1300, 220],
+      "notes": "Bounds memory. Without this, the read node would materialise every accepted photo as a binary item at once — 10k × 5 MB is not a thing n8n survives.\n\nSet N8N_DEFAULT_BINARY_DATA_MODE=filesystem as well, so even one batch spills to disk instead of the heap.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.path }}",
+        "options": {
+          "dataPropertyName": "data"
+        }
+      },
+      "id": "a1000000-0000-4000-8000-00000000000a",
+      "name": "Read photo",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1520, 320],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.apiBase }}/api/ingest/image",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Ingest-Token",
+              "value": "={{ $('Settings').first().json.ingestToken }}"
+            }
+          ]
+        },
+        "contentType": "multipart-form-data",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "sku",
+              "value": "={{ $('Upload loop').item.json.sku }}"
+            },
+            {
+              "name": "sha256",
+              "value": "={{ $('Upload loop').item.json.sha256 }}"
+            },
+            {
+              "name": "source_name",
+              "value": "={{ $('Upload loop').item.json.name }}"
+            },
+            {
+              "name": "frame",
+              "value": "={{ $('Upload loop').item.json.frame ?? '' }}"
+            },
+            {
+              "name": "view",
+              "value": "={{ $('Upload loop').item.json.view ?? '' }}"
+            },
+            {
+              "name": "batch",
+              "value": "={{ $('Upload loop').item.json.batch }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "a1000000-0000-4000-8000-00000000000b",
+      "name": "POST /ingest/image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1740, 320],
+      "onError": "continueRegularOutput",
+      "notes": "neverError + continueRegularOutput on purpose: one corrupt JPEG out of ten thousand must not abandon the other 9,999. Failures are counted in the summary instead.\n\nThe server re-hashes what actually arrived and refuses the row if it disagrees with sha256, so a truncated upload can never masquerade as a stored photo.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Every item that went round the loop lands here once the loop is done.\nconst staticData = $getWorkflowStaticData('global');\n\nconst tally = { stored: 0, duplicate: 0, unknown_sku: 0, hash_mismatch: 0, failed: 0 };\nconst failures = [];\n\nfor (const item of $input.all()) {\n  const status = item.json?.body?.status;\n  const code = item.json?.statusCode;\n\n  if (status && tally[status] !== undefined) {\n    tally[status]++;\n  } else if (code && code >= 200 && code < 300) {\n    tally.stored++;\n  } else {\n    tally.failed++;\n    if (failures.length < 20) {\n      failures.push({\n        file: item.json?.body?.sku ?? item.json?.error ?? 'unknown',\n        statusCode: code ?? null,\n        message: item.json?.body?.message ?? item.json?.error?.message ?? null,\n      });\n    }\n  }\n}\n\nreturn [{\n  json: {\n    batch: $('Settings').first().json.batch,\n    uploads: tally,\n    skippedByPlan: staticData.lastSkips || {},\n    unknownSkus: staticData.lastUnknownSkus || {},\n    firstFailures: failures,\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-00000000000c",
+      "name": "Summarise run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 100]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').first().json.apiBase }}/api/ingest/report",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Ingest-Token",
+              "value": "={{ $('Settings').first().json.ingestToken }}"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "batch",
+              "value": "={{ $('Settings').first().json.batch }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-00000000000d",
+      "name": "GET /ingest/report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1740, 100],
+      "notes": "The catalogue's own account of the batch, read back from the database rather than inferred from HTTP responses. If these two disagree, trust this one.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge what n8n saw with what the catalogue actually holds.\nconst report = $input.first().json;\nconst summary = $('Summarise run').first().json;\n\nreturn [{\n  json: {\n    batch: summary.batch,\n    catalogue: {\n      products: report.products,\n      images: report.images,\n    },\n    uploads: summary.uploads,\n    skippedByPlan: summary.skippedByPlan,\n    // The actionable list: SKU readings that matched nothing. Each key shows\n    // every interpretation tried, best first, so a wrong pattern in\n    // config/ingest.php is obvious rather than mysterious.\n    unknownSkus: summary.unknownSkus,\n    firstFailures: summary.firstFailures,\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-00000000000e",
+      "name": "Final report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1960, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reached when /plan accepted nothing — normally a re-run where every photo\n// is already in the catalogue. Worth reporting, not worth failing.\nreturn [{\n  json: {\n    batch: $('Settings').first().json.batch,\n    result: 'nothing new to upload',\n    skippedByPlan: $json.skipped || {},\n    unknownSkus: $json.unknownSkus || {},\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-00000000000f",
+      "name": "Nothing new",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 440]
+    }
+  ],
+  "connections": {
+    "Run ingest": {
+      "main": [[{ "node": "Settings", "type": "main", "index": 0 }]]
+    },
+    "Settings": {
+      "main": [[{ "node": "Extract archives", "type": "main", "index": 0 }]]
+    },
+    "Extract archives": {
+      "main": [[{ "node": "Scan + hash", "type": "main", "index": 0 }]]
+    },
+    "Scan + hash": {
+      "main": [[{ "node": "Manifest → batches", "type": "main", "index": 0 }]]
+    },
+    "Manifest → batches": {
+      "main": [[{ "node": "POST /ingest/plan", "type": "main", "index": 0 }]]
+    },
+    "POST /ingest/plan": {
+      "main": [[{ "node": "Accepted → files", "type": "main", "index": 0 }]]
+    },
+    "Accepted → files": {
+      "main": [[{ "node": "Anything to upload?", "type": "main", "index": 0 }]]
+    },
+    "Anything to upload?": {
+      "main": [
+        [{ "node": "Upload loop", "type": "main", "index": 0 }],
+        [{ "node": "Nothing new", "type": "main", "index": 0 }]
+      ]
+    },
+    "Upload loop": {
+      "main": [
+        [{ "node": "Summarise run", "type": "main", "index": 0 }],
+        [{ "node": "Read photo", "type": "main", "index": 0 }]
+      ]
+    },
+    "Read photo": {
+      "main": [[{ "node": "POST /ingest/image", "type": "main", "index": 0 }]]
+    },
+    "POST /ingest/image": {
+      "main": [[{ "node": "Upload loop", "type": "main", "index": 0 }]]
+    },
+    "Summarise run": {
+      "main": [[{ "node": "GET /ingest/report", "type": "main", "index": 0 }]]
+    },
+    "GET /ingest/report": {
+      "main": [[{ "node": "Final report", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 21600
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "clavira-photo-ingest"
+  },
+  "tags": []
+}

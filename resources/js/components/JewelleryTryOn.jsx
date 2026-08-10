@@ -12,6 +12,18 @@ import { createPortal } from 'react-dom';
  *
  * The two modes share all the camera, capture and teardown plumbing and differ
  * only in which landmarker runs and how the piece is anchored.
+ *
+ * A piece renders one of two ways, chosen by `render` in config/tryon.php:
+ *
+ *   '2d'  a transparent PNG cutout drawn to a 2D canvas. Cheap, works
+ *         anywhere, but it is a sticker — the piece cannot turn, because a
+ *         photograph has no other side.
+ *
+ *   '3d'  a glTF model rendered over the feed by three.js, posed from
+ *         MediaPipe's metric world landmarks. Turn your hand and you see the
+ *         band's profile. Costs ~700 KB of WebGL that only loads for pieces
+ *         that ask for it, which is why the import is dynamic and why 2D
+ *         remains the default rather than dead code.
  */
 
 // ---- FaceMesh indices (earrings) ---------------------------------------
@@ -47,14 +59,23 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const MODE_COPY = {
     ears: { hint: 'Look straight at the camera', task: 'face' },
     finger: { hint: 'Hold your hand up, palm away', task: 'hand' },
+    wrist: { hint: 'Hold your hand up and show your wrist', task: 'hand' },
 };
 
+const MODES = ['finger', 'wrist', 'ears'];
+
 export default function JewelleryTryOn({ piece, productName, onClose }) {
-    const mode = piece.mode === 'finger' ? 'finger' : 'ears';
+    const mode = MODES.includes(piece.mode) ? piece.mode : 'ears';
+    const is3D = piece.render === '3d';
+
+    // Rings and bangles both track the hand; only the anchor differs.
+    const usesHand = mode === 'finger' || mode === 'wrist';
 
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
+    const glCanvasRef = useRef(null);     // WebGL layer, 3D pieces only
     const overlayRef = useRef(null);      // the loaded jewellery PNG
+    const stageRef = useRef(null);        // the three.js scene, 3D pieces only
     const landmarkerRef = useRef(null);
     const streamRef = useRef(null);
     const rafRef = useRef(null);
@@ -80,6 +101,12 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
 
         landmarkerRef.current?.close?.();
         landmarkerRef.current = null;
+
+        // A WebGL context that is merely dropped holds its buffers until the
+        // driver collects it, and browsers cap how many may exist at once —
+        // enough try-ons in a row and the next one fails to start.
+        stageRef.current?.dispose();
+        stageRef.current = null;
     }, []);
 
     useEffect(() => stopEverything, [stopEverything]);
@@ -110,12 +137,23 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
                 const cfg = window.__CLAVIRA?.tryon;
                 if (!cfg) throw new Error('DISABLED');
 
-                const imgPromise = new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = () => reject(new Error('ASSET'));
-                    img.src = piece.asset;
-                });
+                // There is no flat-cutout drawer for wrists — a bangle is a
+                // loop the arm passes through, which is exactly the thing a
+                // sticker cannot depict. Fail loudly on the misconfiguration
+                // rather than starting a camera that will render nothing.
+                if (mode === 'wrist' && !is3D) throw new Error('WRIST_NEEDS_3D');
+
+                // Start fetching the artwork before asking for the camera: the
+                // permission prompt is the slowest step and there is no reason
+                // for the download to wait behind it.
+                const assetPromise = is3D
+                    ? import('./tryon/JewelleryStage3D.js')
+                    : new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(img);
+                        img.onerror = () => reject(new Error('ASSET'));
+                        img.src = piece.asset;
+                    });
 
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -132,7 +170,7 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
                 const vision = await import('@mediapipe/tasks-vision');
                 const fileset = await vision.FilesetResolver.forVisionTasks(cfg.wasm_path);
 
-                const landmarker = mode === 'finger'
+                const landmarker = usesHand
                     ? await vision.HandLandmarker.createFromOptions(fileset, {
                         baseOptions: { modelAssetPath: cfg.hand_model_url, delegate: 'GPU' },
                         runningMode: 'VIDEO',
@@ -146,7 +184,28 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
                 if (cancelled) { landmarker.close(); return; }
 
                 landmarkerRef.current = landmarker;
-                overlayRef.current = await imgPromise;
+
+                if (is3D) {
+                    const { default: JewelleryStage3D } = await assetPromise;
+                    if (cancelled) return;
+
+                    let stage;
+                    try {
+                        stage = new JewelleryStage3D(glCanvasRef.current);
+                    } catch {
+                        // Old hardware, a blocklisted driver, or WebGL switched
+                        // off. Distinguishable from a missing model file, and
+                        // worth saying plainly rather than "could not start".
+                        throw new Error('WEBGL');
+                    }
+
+                    await stage.load(piece);
+                    if (cancelled) { stage.dispose(); return; }
+
+                    stageRef.current = stage;
+                } else {
+                    overlayRef.current = await assetPromise;
+                }
 
                 setPhase('ready');
                 loop();
@@ -159,25 +218,18 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
 
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [piece.asset, mode]);
+    }, [piece.asset, piece.model, mode, is3D]);
 
     // ------------------------------------------------------------- draw loop
     const loop = useCallback(() => {
         const video = videoRef.current;
-        const canvas = canvasRef.current;
+        const canvas = is3D ? glCanvasRef.current : canvasRef.current;
         const landmarker = landmarkerRef.current;
+        const stage = stageRef.current;
 
-        if (!video || !canvas || !landmarker) return;
+        if (!video || !canvas || !landmarker || (is3D && !stage)) return;
 
         if (video.readyState >= 2) {
-            if (canvas.width !== video.videoWidth) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-            }
-
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             let result;
             try {
                 result = landmarker.detectForVideo(video, performance.now());
@@ -185,37 +237,76 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
                 result = null; // a dropped frame must not kill the loop
             }
 
-            if (mode === 'finger') {
-                const hands = result?.landmarks ?? [];
-                setTracked(hands.length > 0);
-                if (hands.length) {
-                    hands.forEach((hand, i) => drawRing(ctx, canvas, hand, overlayRef.current, piece, sizeRef.current, smoothedRef, i));
+            if (is3D) {
+                stage.resize(video.videoWidth, video.videoHeight);
+
+                if (usesHand) {
+                    const hands = result?.landmarks ?? [];
+                    setTracked(hands.length > 0);
+
+                    // The metric landmarks are what make this 3D rather than a
+                    // sticker: they carry the hand's orientation, which a
+                    // screen-space projection has thrown away.
+                    const place = mode === 'wrist'
+                        ? stage.placeOnWrists.bind(stage)
+                        : stage.placeOnHands.bind(stage);
+
+                    place(
+                        hands,
+                        result?.worldLandmarks ?? [],
+                        result?.handedness ?? result?.handednesses ?? [],
+                        sizeRef.current,
+                    );
                 } else {
-                    smoothedRef.current = null;
+                    const marks = result?.faceLandmarks?.[0];
+                    setTracked(!!marks);
+                    stage.placeOnFace(marks, sizeRef.current);
                 }
+
+                stage.render();
             } else {
-                const marks = result?.faceLandmarks?.[0];
-                setTracked(!!marks);
-                if (marks) {
-                    drawEarrings(ctx, canvas, marks, overlayRef.current, piece, sizeRef.current, smoothedRef);
+                if (canvas.width !== video.videoWidth) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                }
+
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (mode === 'finger') {
+                    const hands = result?.landmarks ?? [];
+                    setTracked(hands.length > 0);
+                    if (hands.length) {
+                        hands.forEach((hand, i) => drawRing(ctx, canvas, hand, overlayRef.current, piece, sizeRef.current, smoothedRef, i));
+                    } else {
+                        smoothedRef.current = null;
+                    }
                 } else {
-                    smoothedRef.current = null; // don't lerp from a stale pose
+                    const marks = result?.faceLandmarks?.[0];
+                    setTracked(!!marks);
+                    if (marks) {
+                        drawEarrings(ctx, canvas, marks, overlayRef.current, piece, sizeRef.current, smoothedRef);
+                    } else {
+                        smoothedRef.current = null; // don't lerp from a stale pose
+                    }
                 }
             }
         }
 
         rafRef.current = requestAnimationFrame(loop);
-    }, [piece, mode]);
+    }, [piece, mode, is3D]);
 
     // --------------------------------------------------------------- capture
     const capture = () => {
         const video = videoRef.current;
-        const canvas = canvasRef.current;
+        const canvas = is3D ? glCanvasRef.current : canvasRef.current;
         if (!video || !canvas) return;
 
+        // The WebGL layer is sized in device pixels, so take the composite from
+        // the video's own dimensions rather than the canvas backing store.
         const out = document.createElement('canvas');
-        out.width = canvas.width;
-        out.height = canvas.height;
+        out.width = video.videoWidth || canvas.width;
+        out.height = video.videoHeight || canvas.height;
         const ctx = out.getContext('2d');
 
         // Mirror once for the whole composite, so the saved image matches what
@@ -223,7 +314,13 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
         ctx.translate(out.width, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, out.width, out.height);
-        ctx.drawImage(canvas, 0, 0);
+
+        // The 3D layer must be re-rendered immediately before it is read: with
+        // the default WebGL context the drawing buffer is cleared after each
+        // compose, so whatever is on screen is already gone by the time
+        // drawImage runs, and the photo would come back with no jewellery.
+        if (is3D) stageRef.current?.render();
+        ctx.drawImage(canvas, 0, 0, out.width, out.height);
 
         setShot(out.toDataURL('image/jpeg', 0.92));
     };
@@ -253,7 +350,9 @@ export default function JewelleryTryOn({ piece, productName, onClose }) {
                         space, and the customer still sees a selfie view. */}
                     <div className="absolute inset-0" style={{ transform: 'scaleX(-1)' }}>
                         <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-                        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
+                        {is3D
+                            ? <canvas ref={glCanvasRef} className="absolute inset-0 w-full h-full object-cover" />
+                            : <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />}
                     </div>
 
                     {phase === 'starting' && <Notice>Starting the camera…</Notice>}
@@ -412,22 +511,33 @@ function drawRing(ctx, canvas, hand, img, piece, sizeMul, smoothedRef, handIndex
     store[handIndex] = s;
     smoothedRef.current = store;
 
+    // Rings get photographed two ways, and they need opposite treatment.
+    //
+    // 'through' (default) — shot down the finger axis, so the band's own hole
+    //   is visible. That hole IS the registration mark: line it up with the
+    //   finger and the band lands correctly. Such a shot shows the COMPLETE
+    //   loop, including the arc that on a real finger is hidden behind it, so
+    //   that arc has to be erased or it reads as a sticker.
+    //
+    // 'top' — shot looking down at the ring, which is how you see one on your
+    //   own hand. There is no hole to register against, the finger passes
+    //   BEHIND the piece, and the artwork simply sits on the finger centre and
+    //   occludes it. Erasing a band here would gouge a hole in a ring that
+    //   never had one, so occlusion defaults off.
+    const topView = piece.view === 'top';
+    const anchorX = piece.anchor_x ?? 0.5;
+    const anchorY = piece.anchor_y ?? 0.5;
+    const occlude = piece.occlude ?? !topView;
+
     const width = s.fingerW * piece.scale * sizeMul;
     const height = width * (img.naturalHeight / img.naturalWidth);
 
     ctx.save();
     ctx.translate(s.ax, s.ay);
     ctx.rotate(s.angle);
-    // Put the artwork's finger hole exactly on the finger.
-    ctx.drawImage(img, -width * piece.anchor_x, -height * piece.anchor_y, width, height);
+    ctx.drawImage(img, -width * anchorX, -height * anchorY, width, height);
 
-    // The artwork is a front-on studio shot, so it shows the COMPLETE band —
-    // including the arc that, on a real finger, is hidden behind it. Drawn as
-    // is, that closed loop floating over the skin is what makes a 2D try-on
-    // read as a sticker. Erase the span of band that falls within the finger's
-    // silhouette on the palm side; the shank still shows at both edges, which
-    // is exactly what you see when you look down at your own hand.
-    if (piece.occlude !== false) {
+    if (occlude) {
         const band = s.fingerW * (piece.occlude_width ?? 0.9);
         ctx.globalCompositeOperation = 'destination-out';
         // +y is away from the fingertip once rotated, i.e. toward the palm.
@@ -460,7 +570,13 @@ function messageFor(e) {
         return 'A camera can only be used over a secure (https) connection.';
     }
     if (name === 'ASSET') {
-        return 'The try-on image for this piece could not be loaded.';
+        return 'The try-on model for this piece could not be loaded.';
+    }
+    if (name === 'WEBGL') {
+        return 'This device cannot run 3D try-on. It needs WebGL, which may be switched off in your browser settings.';
+    }
+    if (name === 'WRIST_NEEDS_3D') {
+        return 'This piece is set up for wrist try-on, which needs a 3D model. Add one in config/tryon.php.';
     }
     if (name === 'UNSUPPORTED') {
         return 'This browser does not support camera access. Try Chrome, Edge or Safari.';

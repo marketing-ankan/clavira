@@ -21,6 +21,7 @@ use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PhotoIngestController;
 use App\Http\Controllers\RepairController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SitemapController;
@@ -53,6 +54,17 @@ Route::prefix('api')->group(function () {
 
     // Uptime monitoring: 200 healthy, 503 not. No auth — it reveals nothing.
     Route::get('/health', HealthController::class);
+
+    // ---- Bulk photo ingest (n8n, Synology) ----
+    // Shared-secret header rather than the admin session: the caller is a
+    // daemon. Throttled generously because a real run is thousands of small
+    // uploads back to back, but still bounded so a runaway loop cannot fill
+    // the disk unattended.
+    Route::prefix('ingest')->middleware(['ingest.token', 'throttle:600,1'])->group(function () {
+        Route::post('/plan', [PhotoIngestController::class, 'plan']);
+        Route::post('/image', [PhotoIngestController::class, 'image']);
+        Route::get('/report', [PhotoIngestController::class, 'report']);
+    });
 
     Route::post('/certificates/verify', [CertificateController::class, 'verify']);
     Route::post('/enquiries', [EnquiryController::class, 'store']);

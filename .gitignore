@@ -33,4 +33,11 @@ storage/backups/
 #   curl -Lo public/models/face_landmarker.task \
 #     https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
 /public/mediapipe/
-/public/models/
+/public/models/*
+
+# ...but the converted try-on pieces are not runtime, they are product assets —
+# a few MB each, exactly like the catalogue photography that is already
+# committed. They have to travel with the deploy: this repo ships to a host
+# with no Node, so a .glb that is not in git simply never reaches the site.
+# The MediaPipe question above is still open and separate.
+!/public/models/tryon/

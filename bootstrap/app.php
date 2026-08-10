@@ -11,8 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Server-to-server webhook is authenticated by HMAC signature, not CSRF
-        $middleware->validateCsrfTokens(except: ['api/webhooks/razorpay']);
+        $middleware->alias([
+            'ingest.token' => \App\Http\Middleware\VerifyIngestToken::class,
+        ]);
+
+        // Server-to-server callers authenticated by signature or shared secret,
+        // not by a session — a CSRF token would be meaningless to both.
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/razorpay',
+            'api/ingest/*',
+        ]);
 
         // Guests hitting an auth-only URL from a real browser (e.g. an invoice
         // download link in a signed-out tab) go to the sign-in page. Without

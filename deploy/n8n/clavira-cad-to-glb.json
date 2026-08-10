@@ -1,0 +1,142 @@
+{
+  "name": "Clavira — CAD lot to try-on models",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b2000000-0000-4000-8000-000000000001",
+      "name": "Run conversion",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-460, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "sourceFolder",
+              "value": "C:\\SynologyDrive2026\\SynologyDrive\\Jewelry design download rendering",
+              "type": "string"
+            },
+            { "id": "c2", "name": "workDir", "value": "D:\\clavira-cad", "type": "string" },
+            {
+              "id": "c3",
+              "name": "scriptDir",
+              "value": "C:\\xampp2\\htdocs\\clavira\\deploy\\n8n",
+              "type": "string"
+            },
+            {
+              "id": "c4",
+              "name": "modelDir",
+              "value": "C:\\xampp2\\htdocs\\clavira\\public\\models\\tryon",
+              "type": "string"
+            },
+            { "id": "c5", "name": "archivePassword", "value": "PUT-THE-ARCHIVE-PASSWORD-HERE", "type": "string" },
+            { "id": "c6", "name": "budget", "value": 120000, "type": "number" },
+            { "id": "c7", "name": "metal", "value": "yellow", "type": "string" },
+            { "id": "c8", "name": "crease", "value": 25, "type": "number" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000002",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-240, 300],
+      "notes": "budget is the triangle ceiling per model. 120k keeps a piece under ~3 MB; drop it to 40k if the try-on is aimed at mobile data.\n\ncrease is the angle below which normals are averaged. 25 degrees keeps diamond facets sharp while bands stay smooth — raise it and the stones melt.\n\nMove archivePassword to a credential before sharing this workflow.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -File \"{{ $json.scriptDir }}\\extract-archives.ps1\" -Source \"{{ $json.sourceFolder }}\" -WorkDir \"{{ $json.workDir }}\" -Password \"{{ $json.archivePassword }}\""
+      },
+      "id": "b2000000-0000-4000-8000-000000000003",
+      "name": "Extract CAD lots",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [-20, 300],
+      "notes": "The supplier lots are encrypted throughout and one of them nests a .rar inside a .zip, so the script unwraps a level and passes the password down.\n\nRe-running skips archives whose timestamp has not moved.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -Command \"Get-ChildItem -LiteralPath '{{ $('Settings').first().json.workDir }}' -Recurse -File -Filter *.stl | ForEach-Object { [pscustomobject]@{ path = $_.FullName; name = $_.BaseName; mb = [math]::Round($_.Length/1MB,2) } | ConvertTo-Json -Compress }\""
+      },
+      "id": "b2000000-0000-4000-8000-000000000004",
+      "name": "Find STL files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "notes": "The .stl is the mesh; the .3dm beside it is the Rhino source. STL is what converts directly — see the note at the foot of stl-to-glb.mjs for what the .3dm would buy.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per STL. Design name comes from the file's own folder, which is\n// how the supplier identifies a piece — the STL filename itself is\n// inconsistent (\"64-STL\", \"7 INCH RPT\", \"52-CAD-7INCH\") and would produce\n// model files nobody could map back to a design.\nconst stdout = $input.first().json.stdout || '';\nconst settings = $('Settings').first().json;\n\nconst items = [];\nfor (const line of stdout.split(/\\r?\\n/)) {\n  const t = line.trim();\n  if (!t) continue;\n  let row;\n  try { row = JSON.parse(t); } catch { continue; }\n  if (!row?.path) continue;\n\n  const parts = row.path.split(/[\\\\/]/);\n  // .../<design>/<design>/<file>.stl — walk back to the first folder whose\n  // name is not simply repeated, which is the design id.\n  const design = parts[parts.length - 2] || row.name;\n  const slug = String(design).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');\n\n  items.push({\n    json: {\n      ...row,\n      design,\n      out: `${settings.modelDir}\\\\design-${slug}.glb`,\n      slug: `design-${slug}`,\n    },\n  });\n}\n\nif (!items.length) throw new Error('No .stl found under workDir — did extraction succeed?');\n\nreturn items;"
+      },
+      "id": "b2000000-0000-4000-8000-000000000005",
+      "name": "STL → jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": { "batchSize": 2, "options": {} },
+      "id": "b2000000-0000-4000-8000-000000000006",
+      "name": "Convert loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [640, 300],
+      "notes": "Two at a time. Simplifying a million-triangle mesh is CPU- and memory-hungry, and running eight in parallel on a workstation that is also running n8n just makes them all slower.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=node \"{{ $('Settings').first().json.scriptDir }}\\stl-to-glb.mjs\" \"{{ $json.path }}\" \"{{ $json.out }}\" --budget {{ $('Settings').first().json.budget }} --metal {{ $('Settings').first().json.metal }} --crease {{ $('Settings').first().json.crease }} --json"
+      },
+      "id": "b2000000-0000-4000-8000-000000000007",
+      "name": "Convert to GLB",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [860, 400],
+      "onError": "continueRegularOutput",
+      "notes": "Weld -> decimate -> creased normals -> centre and unit-scale -> write GLB.\n\ncontinueRegularOutput because one malformed mesh in a lot of eighty must not abandon the other seventy-nine; failures are counted in the summary.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Every converted model, plus the config block to paste into tryon.php.\nconst ok = [];\nconst failed = [];\n\nfor (const item of $input.all()) {\n  const out = (item.json.stdout || '').trim();\n  if (item.json.exitCode && item.json.exitCode !== 0) {\n    failed.push({ error: item.json.stderr || 'non-zero exit' });\n    continue;\n  }\n  try {\n    ok.push(JSON.parse(out.split(/\\r?\\n/).pop()));\n  } catch {\n    failed.push({ error: out.slice(0, 300) || item.json.stderr || 'no JSON on stdout' });\n  }\n}\n\n// A converted model is NOT wearable on its own: the mesh may be a flat\n// manufacturing layout rather than worn shape, and its hole may lie on any\n// axis. Both are judgement calls, so emit a starting point rather than\n// pretending the pipeline can decide.\nconst snippets = ok.map((r) => {\n  const [x, y, z] = r.dimensionsMm;\n  const thin = Math.min(x, y, z);\n  // The hole runs along whichever axis is thinnest for a flat bangle; the\n  // stage wants it along +Y.\n  const rotation = thin === z ? '[-90, 0, 0]' : thin === x ? '[0, 0, 90]' : '[0, 0, 0]';\n\n  return [\n    `// ${r.input} — ${r.dimensionsMm.join(' x ')} mm, ${r.trianglesOut.toLocaleString()} tris`,\n    `'<product-slug>' => [`,\n    `    'mode' => 'wrist',   // or 'finger'`,\n    `    'render' => '3d',`,\n    `    'model' => '/models/tryon/${r.output}',`,\n    `    'model_rotation' => ${rotation},`,\n    `    'scale' => 1.15,`,\n    `],`,\n  ].join('\\n');\n});\n\nreturn [{\n  json: {\n    converted: ok.length,\n    failed: failed.length,\n    totalMB: Number((ok.reduce((s, r) => s + r.bytes, 0) / 1048576).toFixed(2)),\n    models: ok,\n    failures: failed,\n    configSnippets: snippets.join('\\n\\n'),\n    note: 'Check each model is in WORN shape, not a flat manufacturing layout, and confirm the design maps to a real catalogue SKU before enabling it.',\n  },\n}];"
+      },
+      "id": "b2000000-0000-4000-8000-000000000008",
+      "name": "Summarise + config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 180]
+    }
+  ],
+  "connections": {
+    "Run conversion": { "main": [[{ "node": "Settings", "type": "main", "index": 0 }]] },
+    "Settings": { "main": [[{ "node": "Extract CAD lots", "type": "main", "index": 0 }]] },
+    "Extract CAD lots": { "main": [[{ "node": "Find STL files", "type": "main", "index": 0 }]] },
+    "Find STL files": { "main": [[{ "node": "STL → jobs", "type": "main", "index": 0 }]] },
+    "STL → jobs": { "main": [[{ "node": "Convert loop", "type": "main", "index": 0 }]] },
+    "Convert loop": {
+      "main": [
+        [{ "node": "Summarise + config", "type": "main", "index": 0 }],
+        [{ "node": "Convert to GLB", "type": "main", "index": 0 }]
+      ]
+    },
+    "Convert to GLB": { "main": [[{ "node": "Convert loop", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 21600
+  },
+  "pinData": {},
+  "meta": { "instanceId": "clavira-cad-to-glb" },
+  "tags": []
+}
