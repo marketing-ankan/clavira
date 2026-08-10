@@ -6,7 +6,7 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-3rE-NcmA.css",
+    "file": "assets/app-gVPUn2Ym.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -15,13 +15,13 @@
     ]
   },
   "resources/js/components/tryon/JewelleryStage3D.js": {
-    "file": "assets/JewelleryStage3D-Bz1xp1oi.js",
+    "file": "assets/JewelleryStage3D-kdplRcn3.js",
     "name": "JewelleryStage3D",
     "src": "resources/js/components/tryon/JewelleryStage3D.js",
     "isDynamicEntry": true
   },
   "resources/js/main.jsx": {
-    "file": "assets/main-CkPqpUWf.js",
+    "file": "assets/main-CK2PglqX.js",
     "name": "main",
     "src": "resources/js/main.jsx",
     "isEntry": true,

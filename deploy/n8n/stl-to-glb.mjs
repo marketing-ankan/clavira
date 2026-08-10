@@ -57,7 +57,19 @@ if (!input || !output) {
     process.exit(2);
 }
 
-const budget = Number(flag('budget', 120000));
+/**
+ * Triangle ceiling.
+ *
+ * 25k, not the 120k that seems prudent. A ring on a tracked finger occupies
+ * roughly 35 pixels of a 640-wide frame, and at that size the two are
+ * measurably identical: same silhouette to the pixel, same occlusion, mean
+ * lit colour differing by 1/255. The 80k version is simply 2.5x the download
+ * for a difference nobody can see, over mobile data, on a feature nobody
+ * waits for.
+ *
+ * Raise it for a piece meant to be inspected close up rather than worn.
+ */
+const budget = Number(flag('budget', 25000));
 const creaseDeg = Number(flag('crease', 25));
 const metal = String(flag('metal', 'yellow')).toLowerCase();
 const asJson = args.includes('--json');
@@ -221,25 +233,72 @@ function analyse(geometry) {
             grid[gv * nu + gu] = 1;
         }
 
-        // Grow a disc from the centre until it meets material. That radius is
-        // the hole; measuring it on the grid rather than on raw vertices means
-        // a single stray point cannot report a hole as closed.
-        const cu = (nu - 1) / 2;
-        const cv = (nv - 1) / 2;
-        let holeCells = 0;
-        for (let r = 1; r < Math.min(nu, nv) / 2; r++) {
-            let clear = true;
-            for (let a = 0; a < 96 && clear; a++) {
-                const t = (a / 96) * Math.PI * 2;
-                const x = Math.round(cu + Math.cos(t) * r);
-                const y = Math.round(cv + Math.sin(t) * r);
-                if (x < 0 || y < 0 || x >= nu || y >= nv || grid[y * nu + x]) clear = false;
+        // Find ENCLOSED empty space: flood the empty cells inward from the
+        // border, and whatever empty cells that flood cannot reach are holes
+        // with material all the way round them.
+        //
+        // Growing a disc from the bounding-box centre instead - the obvious
+        // approach - quietly fails on the commonest case in the catalogue. A
+        // ring is ~20mm across its band and ~25mm tall including the setting,
+        // so its box centre sits up inside the crown rather than in the finger
+        // hole, and the disc hits the setting almost immediately: every ring in
+        // the lot measured 9-12mm where a real finger hole is about 17mm.
+        const outside = new Uint8Array(nu * nv);
+        const stack = [];
+        for (let x = 0; x < nu; x++) {
+            for (const y of [0, nv - 1]) {
+                const i = y * nu + x;
+                if (!grid[i] && !outside[i]) { outside[i] = 1; stack.push(i); }
             }
-            if (!clear) break;
-            holeCells = r;
+        }
+        for (let y = 0; y < nv; y++) {
+            for (const x of [0, nu - 1]) {
+                const i = y * nu + x;
+                if (!grid[i] && !outside[i]) { outside[i] = 1; stack.push(i); }
+            }
+        }
+        while (stack.length) {
+            const i = stack.pop();
+            const x = i % nu;
+            const y = (i - x) / nu;
+            for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                const nx = x + dx;
+                const ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= nu || ny >= nv) continue;
+                const j = ny * nu + nx;
+                if (!grid[j] && !outside[j]) { outside[j] = 1; stack.push(j); }
+            }
         }
 
-        const holeMm = holeCells * 2 * cell;
+        // Largest enclosed region wins - a ring band encloses one big finger
+        // hole plus, sometimes, a few pinholes between claws.
+        const seen = new Uint8Array(nu * nv);
+        let largest = 0;
+        for (let s = 0; s < nu * nv; s++) {
+            if (grid[s] || outside[s] || seen[s]) continue;
+            let area = 0;
+            const q = [s];
+            seen[s] = 1;
+            while (q.length) {
+                const i = q.pop();
+                area++;
+                const x = i % nu;
+                const y = (i - x) / nu;
+                for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= nu || ny >= nv) continue;
+                    const j = ny * nu + nx;
+                    if (!grid[j] && !outside[j] && !seen[j]) { seen[j] = 1; q.push(j); }
+                }
+            }
+            if (area > largest) largest = area;
+        }
+
+        // Report the hole as the diameter of a circle of the same area, which
+        // is the size of finger or wrist that has to pass through it and is
+        // steadier on an oval opening than any single measured chord.
+        const holeMm = 2 * Math.sqrt((largest * cell * cell) / Math.PI);
 
         if (!best || holeMm > best.holeMm) {
             best = {
@@ -295,6 +354,11 @@ function suggestConfig(shape, file) {
         model: `/models/tryon/${file}`,
         model_rotation: rotation,
         real_mm: shape.outerMm,
+        // The limb fills the hole - that is what a hole is for - so this is the
+        // exact size of the occluder that hides the far side of the band. It
+        // beats estimating a finger's width from landmarks, which is guesswork
+        // built on a hand model that reports no thickness of its own.
+        hole_mm: shape.holeMm,
     };
 }
 

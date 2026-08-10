@@ -247,6 +247,26 @@ export default class JewelleryStage3D {
     }
 
     /**
+     * How wide the limb is, in the group's own units.
+     *
+     * Prefer the hole the CAD actually has. A ring's inner diameter IS the
+     * finger that wears it, measured rather than inferred, and it is the only
+     * figure here that cannot drift. Estimating instead from the gap between
+     * knuckles overshoots badly — on a 24.5 mm ring that gap measures 24.7 mm,
+     * so the occluder swallows the entire band and the piece vanishes.
+     *
+     * The landmark estimate stays as the fallback for hand-authored pieces
+     * that never went through the converter and so have no measurements.
+     */
+    occluderLocal(limbPx, widthPx, sizeMul) {
+        if (this.piece.hole_mm && this.piece.real_mm) {
+            return this.piece.hole_mm / this.piece.real_mm;
+        }
+
+        return limbPx / (widthPx * sizeMul);
+    }
+
+    /**
      * Millimetres per screen pixel, measured off the wearer's own hand.
      *
      * MediaPipe's world landmarks are metric — actual metres — so the span
@@ -333,15 +353,13 @@ export default class JewelleryStage3D {
                 // A cylinder standing in for the finger: invisible, but present
                 // in the depth buffer.
                 //
-                // Sized in the GROUP's local units, not world units. The group
-                // is already scaled so the piece spans `diameter` world units
-                // and normalise() left the model exactly 1 unit across, so
-                // inside the group the finger is just its share of the piece's
-                // width. Setting a world measurement here instead multiplies
-                // the two scales together and leaves an occluder an order of
-                // magnitude too small to cover anything.
-                const fingerLocal = fingerPx / (widthPx * sizeMul);
-                slot.occluder.scale.set(fingerLocal, 4, fingerLocal);
+                // Sized in the GROUP's local units, not world units — the model
+                // was normalised to exactly 1 unit across, so the occluder is
+                // simply the hole's share of the piece's width. Setting a world
+                // measurement here instead multiplies the two scales together
+                // and leaves an occluder far too small to cover anything.
+                slot.occluder.scale.setScalar(this.occluderLocal(fingerPx, widthPx, sizeMul));
+                slot.occluder.scale.y = 4;
             }
         });
     }
@@ -457,12 +475,10 @@ export default class JewelleryStage3D {
             this.applySlot(slot, position, quaternion, diameter);
 
             if (slot.occluder) {
-                // Same local-units reasoning as the ring: the wrist's share of
-                // the bangle's width. The wrist itself has no landmark width,
-                // so it is taken as a fraction of the knuckle span.
+                // Same reasoning as the ring: the wrist fills the bangle's hole.
                 const wristPx = handPx * (this.piece.wrist_ratio ?? 0.78);
-                const wristLocal = wristPx / (widthPx * sizeMul);
-                slot.occluder.scale.set(wristLocal, 4, wristLocal);
+                slot.occluder.scale.setScalar(this.occluderLocal(wristPx, widthPx, sizeMul));
+                slot.occluder.scale.y = 4;
             }
         });
     }
