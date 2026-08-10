@@ -9,6 +9,38 @@ Both read the same encrypted lots on the NAS and share `extract-archives.ps1`.
 **The archives are password-protected throughout** — filenames are readable,
 contents are not — so both workflows need `archivePassword` set.
 
+## Before anything else: the files must actually be on this disk
+
+Synology Drive syncs **on demand**. A lot that has never been opened is a
+placeholder: it lists with its full size and looks completely normal, but the
+bytes are still on the NAS. Both failure modes are silent and neither says
+what is wrong:
+
+- **Extracting from a placeholder** makes the extractor trigger the download.
+  On this machine that read never returned at all — no CPU, no output, no
+  error, indefinitely.
+- **Copying it local first is worse.** `Copy-Item` is sparse-aware: it
+  duplicates the holes instead of recalling the contents, so you get a file of
+  exactly the right byte count filled with zeroes, at an implausible
+  ~110 MB/s, and the extractor reports `Bad archive`.
+
+`extract-archives.ps1` now refuses a placeholder and says so, rather than
+hanging or producing an empty extraction. To make a lot usable:
+
+> In Explorer, right-click the `.rar` → **Synology Drive → Make available
+> offline**, and wait until the icon shows it is downloaded.
+
+Check from PowerShell — the numeric attribute is the only reliable test
+(`.Attributes.ToString()` reports these as ordinary local files):
+
+```powershell
+Get-ChildItem "C:\SynologyDrive2026\SynologyDrive\Jewelry design download rendering" |
+  ForEach-Object { "{0,-46} {1}" -f $_.Name, $(if ([int]$_.Attributes -band 4194304) { "PLACEHOLDER" } else { "local" }) }
+```
+
+Once the STLs are converted the lot is no longer needed: right-click →
+**Free up space** returns the gigabytes and keeps the few MB of `.glb`.
+
 ---
 
 # Synology → Clavira photo ingest
@@ -282,3 +314,5 @@ Same rules, same dedupe, no HTTP.
 | `hash_mismatch` | File changed between scan and upload — re-run the scan |
 | n8n runs out of memory | `N8N_DEFAULT_BINARY_DATA_MODE=filesystem` not set, or `uploadBatch` too high |
 | Scan finds nothing | `workDir` points above the extracted folder, or the shoot is not `.jpg/.jpeg/.png/.webp` |
+| "is a Synology Drive placeholder" | The lot is not downloaded — see the section at the top |
+| `Bad archive`, or extraction hangs with no output | Same cause: a placeholder was read or copied. Never `Copy-Item` one |
