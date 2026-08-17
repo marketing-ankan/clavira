@@ -1,7 +1,8 @@
-There are two workflows here:
+There are three workflows here:
 
 | Workflow | What it does |
 | --- | --- |
+| `clavira-watch-folder.json` | **Drop a folder of photos in, get web-ready images out.** Runs itself |
 | `clavira-photo-ingest.json` | Supplier renders → catalogue images, matched to SKUs |
 | `clavira-cad-to-glb.json` | Supplier Rhino meshes → `.glb` models for 3D try-on |
 
@@ -40,6 +41,99 @@ Get-ChildItem "C:\SynologyDrive2026\SynologyDrive\Jewelry design download render
 
 Once the STLs are converted the lot is no longer needed: right-click →
 **Free up space** returns the gigabytes and keeps the few MB of `.glb`.
+
+---
+
+# Watched folder: photos in, web-ready images out
+
+`clavira-watch-folder.json`. Put files in `drop\`, and processed images appear
+in `_out\` a couple of minutes later. Nothing to click.
+
+```
+D:\clavira-intake\
+  drop\        <- you put files or whole folders here
+  _work\       a batch mid-process
+  _out\        results, one folder per batch, structure mirrored
+  _done\       originals, after success
+  _failed\     originals + why.txt, after failure
+```
+
+Point the **Settings** node's `root` at that folder and activate the workflow.
+
+## What each image gets
+
+A shoot arrives as 6000px JPEGs on a sweep, slightly off-centre, each a
+different distance from the lens, carrying camera EXIF and colour profile. A
+product grid needs them square, centred, consistently sized and small. Per file:
+
+1. **EXIF rotation applied and stripped** — otherwise a portrait shot is upright
+   in Explorer and on its side in the browser, because only some renderers
+   honour the tag.
+2. **Uniform backdrop keyed out** (see the caveat below).
+3. **Trimmed to the piece**, which crops dead space *and* re-centres a piece the
+   photographer left off to one side.
+4. **Centred on a square** with a little padding, so rows in a grid don't jump.
+5. **WebP at each size** — main, `@thumb`, optional `@2x` — in sRGB.
+
+```bash
+node deploy/n8n/process-photos.mjs in\ out\ --size 1600 --thumb 400 --bg white --recursive
+```
+
+Verified on a 900×700 frame with a 180×180 subject at (120,90): trimmed to
+180×181, keyed, centred on 800×800. `--bg white` gives a `[255,255,255]` corner;
+`--bg transparent` gives `[0,0,0,0]` with an alpha channel.
+
+## What it will not do
+
+**It cannot cut a piece out of a busy background.** Deciding which pixels are
+"the necklace" and which are "the velvet it is lying on" is a matting problem
+that needs a trained model; no amount of thresholding substitutes for one.
+
+What it does instead is handle a **uniform** backdrop — a sweep, a lightbox, the
+black of a CAD render — by sampling the four corners and keying that colour out.
+If the corners disagree, it says so and leaves the shot untouched rather than
+eating into the product:
+
+```
+d2-bangle-01.jpg
+  background white (corners disagreed - left as shot)
+```
+
+That line is the signal to send those shots to a real cutout tool, or to use
+`--bg keep`. The report counts how many were keyed (`backdropKeyed: 34/40`); a
+sudden drop usually means the shoot moved to a different surface.
+
+## Why it polls instead of watching
+
+A filesystem watcher fires the instant a file appears — which is while it is
+still being copied. So instead:
+
+- the schedule polls every 2 minutes;
+- claiming a batch **moves** it out of `drop\` before anything reads it, so a
+  folder dropped in mid-run belongs to the next batch rather than being
+  processed half-copied;
+- a file the sender still holds open is **skipped, not grabbed** (Windows keeps
+  an exclusive lock during a copy), and picked up on the next pass. Without that
+  check a 40 MB TIFF gets read at 12 MB and processed into a corrupt thumbnail —
+  the kind of bug that only bites the big files and only sometimes.
+
+## When something goes wrong
+
+A batch where 2 of 40 files were corrupt is a **partial success**: the 38 good
+ones are kept, the originals are archived, and the report names the failures.
+Only a batch where *nothing* processed is quarantined to `_failed\<batch>\` —
+originals intact, with a `why.txt` beside them, because a folder of files and no
+explanation is worse than useless six weeks later.
+
+Originals are never deleted. Reprocessing at a different size months later needs
+the full-resolution file, and a WebP cannot give it back.
+
+## Chaining it into the catalogue
+
+`_out\<batch>\` is laid out exactly as the ingest pipeline expects, so pointing
+[the ingest workflow](#synology--clavira-photo-ingest) at it files the results
+against SKUs. Keep them separate while you are still tuning the look — you do
+not want a half-right crop landing on the live site.
 
 ---
 

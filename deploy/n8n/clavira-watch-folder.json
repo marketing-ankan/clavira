@@ -1,0 +1,211 @@
+{
+  "name": "Clavira — watched folder: photos in, web-ready images out",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 2 }] }
+      },
+      "id": "c3000000-0000-4000-8000-000000000001",
+      "name": "Every 2 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-460, 300],
+      "notes": "Polling, not a filesystem watcher. A watcher fires the instant a file appears — which is while it is still being copied. Polling plus the lock check in intake.ps1 means a batch is only ever claimed once the sender has let go of it.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "w1", "name": "root", "value": "D:\\clavira-intake", "type": "string" },
+            {
+              "id": "w2",
+              "name": "scriptDir",
+              "value": "C:\\xampp2\\htdocs\\clavira\\deploy\\n8n",
+              "type": "string"
+            },
+            { "id": "w3", "name": "size", "value": 1600, "type": "number" },
+            { "id": "w4", "name": "thumb", "value": 400, "type": "number" },
+            { "id": "w5", "name": "background", "value": "white", "type": "string" },
+            { "id": "w6", "name": "pad", "value": 0.06, "type": "number" },
+            { "id": "w7", "name": "quality", "value": 82, "type": "number" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000002",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-240, 300],
+      "notes": "background: white | transparent | keep.\n\n'white' and 'transparent' only key out a UNIFORM backdrop — a sweep, a lightbox, the black of a CAD render. The processor samples the four corners and, if they disagree, leaves the shot alone and says so. A piece photographed on patterned silk needs a real cutout tool, not a colour key.\n\npad is the breathing room around the piece, as a fraction of the square.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -File \"{{ $json.scriptDir }}\\intake.ps1\" -Root \"{{ $json.root }}\" -Action claim"
+      },
+      "id": "c3000000-0000-4000-8000-000000000003",
+      "name": "Claim a batch",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [-20, 300],
+      "notes": "Claiming MOVES files out of drop\\ before anything reads them. So a folder dropped in halfway through a run belongs to the next batch rather than being processed half-copied — and files the sender still has open are skipped, not grabbed.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// intake.ps1 prints one JSON object. A null batch means the drop folder was\n// empty, which is the normal state of a watched folder rather than a fault.\nconst raw = ($input.first().json.stdout || '').trim();\n\nlet claim;\ntry {\n  claim = JSON.parse(raw.split(/\\r?\\n/).pop());\n} catch (e) {\n  throw new Error(`intake.ps1 did not return JSON: ${raw.slice(0, 300)}`);\n}\n\nreturn [{ json: claim }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000004",
+      "name": "Read claim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "wc1",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000005",
+      "name": "Anything claimed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {},
+      "id": "c3000000-0000-4000-8000-000000000006",
+      "name": "Idle",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [640, 440],
+      "notes": "Drop folder empty. Most runs end here.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=node \"{{ $('Settings').first().json.scriptDir }}\\process-photos.mjs\" \"{{ $json.path }}\" \"{{ $json.outPath }}\" --size {{ $('Settings').first().json.size }} --thumb {{ $('Settings').first().json.thumb }} --bg {{ $('Settings').first().json.background }} --pad {{ $('Settings').first().json.pad }} --quality {{ $('Settings').first().json.quality }} --recursive --json"
+      },
+      "id": "c3000000-0000-4000-8000-000000000007",
+      "name": "Process images",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [640, 200],
+      "onError": "continueRegularOutput",
+      "notes": "Applies EXIF rotation, keys a uniform backdrop, trims to the piece, centres it on a square, and writes WebP at each size.\n\n--recursive mirrors the sender's folder structure, because a shoot arranged as <SKU>\\<frame>.jpg carries the only clue about which piece each file belongs to.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// One JSON line per image. Count them rather than trusting the exit code:\n// a batch where 2 of 40 files were corrupt is a partial success worth keeping,\n// not something to throw away wholesale.\nconst claim = $('Read claim').first().json;\nconst stdout = $input.first().json.stdout || '';\nconst stderr = $input.first().json.stderr || '';\n\nconst ok = [];\nconst bad = [];\n\nfor (const line of stdout.split(/\\r?\\n/)) {\n  const t = line.trim();\n  if (!t) continue;\n  let row;\n  try { row = JSON.parse(t); } catch { continue; }\n  (row.error ? bad : ok).push(row);\n}\n\n// Nothing parsed at all means the processor never really ran — a missing\n// node, a bad path, sharp not installed. That is a batch failure.\nconst hardFailure = ok.length === 0;\n\nreturn [{\n  json: {\n    batch: claim.batch,\n    outPath: claim.outPath,\n    claimed: claim.count,\n    processed: ok.length,\n    failed: bad.length,\n    hardFailure,\n    // How many shots had a backdrop clean enough to key. A sudden drop here\n    // usually means the shoot moved to a different surface.\n    keyed: ok.filter((r) => r.keyedBackground).length,\n    files: ok.flatMap((r) => r.outputs.map((o) => o.name)).slice(0, 40),\n    problems: bad.slice(0, 10),\n    stderr: hardFailure ? stderr.slice(0, 600) : undefined,\n  },\n}];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000008",
+      "name": "Read results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "wc2",
+              "leftValue": "={{ $json.hardFailure }}",
+              "rightValue": "",
+              "operator": { "type": "boolean", "operation": "false", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000009",
+      "name": "Did it work?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1080, 200]
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -File \"{{ $('Settings').first().json.scriptDir }}\\intake.ps1\" -Root \"{{ $('Settings').first().json.root }}\" -Action complete -Batch \"{{ $json.batch }}\""
+      },
+      "id": "c3000000-0000-4000-8000-00000000000a",
+      "name": "Archive originals",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1300, 120],
+      "notes": "Originals move to _done\\<batch>. They are never deleted — a reprocess at a different size months later needs the full-resolution file, and the processed WebP cannot give it back.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -File \"{{ $('Settings').first().json.scriptDir }}\\intake.ps1\" -Root \"{{ $('Settings').first().json.root }}\" -Action fail -Batch \"{{ $json.batch }}\" -Reason \"{{ ($json.stderr || 'No images could be processed.').replaceAll('\"','') }}\""
+      },
+      "id": "c3000000-0000-4000-8000-00000000000b",
+      "name": "Quarantine batch",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "notes": "Originals go to _failed\\<batch> WITH a why.txt. A folder of files and no explanation is worse than useless six weeks later.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// What the run actually did. Wire a Slack/email node after this if you want\n// to be told; most runs are idle and not worth a message.\nconst r = $('Read results').first().json;\n\nreturn [{\n  json: {\n    batch: r.batch,\n    result: r.hardFailure ? 'FAILED' : (r.failed ? 'partial' : 'ok'),\n    claimed: r.claimed,\n    processed: r.processed,\n    failed: r.failed,\n    backdropKeyed: `${r.keyed}/${r.processed}`,\n    output: r.outPath,\n    problems: r.problems,\n  },\n}];"
+      },
+      "id": "c3000000-0000-4000-8000-00000000000c",
+      "name": "Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 200]
+    }
+  ],
+  "connections": {
+    "Every 2 minutes": { "main": [[{ "node": "Settings", "type": "main", "index": 0 }]] },
+    "Settings": { "main": [[{ "node": "Claim a batch", "type": "main", "index": 0 }]] },
+    "Claim a batch": { "main": [[{ "node": "Read claim", "type": "main", "index": 0 }]] },
+    "Read claim": { "main": [[{ "node": "Anything claimed?", "type": "main", "index": 0 }]] },
+    "Anything claimed?": {
+      "main": [
+        [{ "node": "Process images", "type": "main", "index": 0 }],
+        [{ "node": "Idle", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process images": { "main": [[{ "node": "Read results", "type": "main", "index": 0 }]] },
+    "Read results": { "main": [[{ "node": "Did it work?", "type": "main", "index": 0 }]] },
+    "Did it work?": {
+      "main": [
+        [{ "node": "Archive originals", "type": "main", "index": 0 }],
+        [{ "node": "Quarantine batch", "type": "main", "index": 0 }]
+      ]
+    },
+    "Archive originals": { "main": [[{ "node": "Report", "type": "main", "index": 0 }]] },
+    "Quarantine batch": { "main": [[{ "node": "Report", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 7200
+  },
+  "pinData": {},
+  "meta": { "instanceId": "clavira-watch-folder" },
+  "tags": []
+}
