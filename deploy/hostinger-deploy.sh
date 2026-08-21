@@ -46,3 +46,14 @@ php artisan route:cache
 php artisan view:clear
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] deploy complete"
+
+# --- appended (per the append-only rule above) ---------------------------
+# Try-on runtime + 3D pieces live under laravel/public but must be reachable
+# at the web root, same as images/. Symlinks survive future pulls, so this
+# only has to succeed once. NOTE: on the deploy that first ships these lines
+# bash is still executing the previous version of this file (old inode), so
+# they take effect from the NEXT changed deploy onward — push any trivial
+# commit after the main one to trigger it.
+[ -L "$DOCROOT/models" ] || { rm -rf "$DOCROOT/models"; ln -sfn "$LARAVEL_DIR/public/models" "$DOCROOT/models"; }
+[ -L "$DOCROOT/mediapipe" ] || { rm -rf "$DOCROOT/mediapipe"; ln -sfn "$LARAVEL_DIR/public/mediapipe" "$DOCROOT/mediapipe"; }
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] tryon runtime symlinks ensured"

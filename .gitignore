@@ -25,19 +25,13 @@ Homestead.yaml
 Thumbs.db
 storage/backups/
 
-# Virtual try-on runtime (MediaPipe wasm ~22MB + face model ~3.7MB).
-# Deliberately NOT committed: this repo already ships vendor/ + public/build and
-# the deploy cron pulls every 5 minutes. Decide before shipping try-on — either
-# commit these, or point FilesetResolver at a CDN. Regenerate locally with:
+# Virtual try-on runtime (MediaPipe wasm + landmark models, ~46MB) and the
+# converted try-on pieces are COMMITTED, same as vendor/ and public/build:
+# the host has no Node, so anything not in git never reaches the site.
+# The decision the old comment left open is now made — same-origin serving
+# keeps the "nothing loads from third parties" privacy stance. Regenerate with:
 #   cp node_modules/@mediapipe/tasks-vision/wasm/* public/mediapipe/wasm/
+#   curl -Lo public/models/hand_landmarker.task \
+#     https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
 #   curl -Lo public/models/face_landmarker.task \
 #     https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
-/public/mediapipe/
-/public/models/*
-
-# ...but the converted try-on pieces are not runtime, they are product assets —
-# a few MB each, exactly like the catalogue photography that is already
-# committed. They have to travel with the deploy: this repo ships to a host
-# with no Node, so a .glb that is not in git simply never reaches the site.
-# The MediaPipe question above is still open and separate.
-!/public/models/tryon/
