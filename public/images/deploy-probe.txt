@@ -1,1 +1,1 @@
-deploy probe 2026-08-21 15:20:33 local
+﻿deploy probe 2026-08-26 pipeline test: marketing-ankan/clavira main -> hostinger cron
