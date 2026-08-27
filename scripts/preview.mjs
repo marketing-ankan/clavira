@@ -7,11 +7,13 @@
 //   node scripts/preview.mjs                    # the default page set
 //   node scripts/preview.mjs / /craftsmanship   # specific paths
 //   node scripts/preview.mjs --mobile /         # 390px-wide viewport
+//   node scripts/preview.mjs --viewport /       # above the fold only
+//   node scripts/preview.mjs --retina /         # 2x PNG, for inspecting detail
 //
-// PNGs land in storage/app/preview/ (gitignored) — one per path.
+// Images land in storage/app/preview/ (gitignored) — one per path.
 
 import { chromium } from 'playwright';
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
@@ -27,6 +29,10 @@ const OUT = 'storage/app/preview';
 const argv = process.argv.slice(2);
 const mobile = argv.includes('--mobile');
 const full = !argv.includes('--viewport'); // full-page unless asked otherwise
+// These get sent to a phone for review, so default to a JPEG at 1x: a retina
+// full-page shot of a long landing page runs to double-digit megabytes and
+// bounces off attachment limits. --retina when you need to inspect detail.
+const retina = argv.includes('--retina');
 const paths = argv.filter((a) => !a.startsWith('--'));
 
 const DEFAULT_PAGES = ['/', '/category/rings', '/collections', '/craftsmanship'];
@@ -41,7 +47,7 @@ await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch(launchOpts);
 const page = await browser.newPage({
     viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 },
-    deviceScaleFactor: 2,
+    deviceScaleFactor: retina ? 2 : 1,
 });
 
 // Surface anything the app logs as an error — a blank-looking screenshot is
@@ -98,10 +104,16 @@ for (const target of targets) {
     // The SPA paints after its first fetch resolves; give lazy imagery a beat.
     await page.waitForTimeout(700);
     if (full) await revealAll();
-    const file = path.join(OUT, `${nameFor(target)}${mobile ? '-mobile' : ''}.png`);
-    await page.screenshot({ path: file, fullPage: full });
+    const ext = retina ? 'png' : 'jpg';
+    const file = path.join(OUT, `${nameFor(target)}${mobile ? '-mobile' : ''}.${ext}`);
+    await page.screenshot({
+        path: file,
+        fullPage: full,
+        ...(retina ? {} : { type: 'jpeg', quality: 82 }),
+    });
     const status = res?.status() ?? '???';
-    console.log(`${status} ${target} -> ${file}`);
+    const kb = Math.round((await stat(file)).size / 1024);
+    console.log(`${status} ${target} -> ${file} (${kb} KB)`);
     for (const p of problems) console.log(`      ! ${p}`);
 }
 

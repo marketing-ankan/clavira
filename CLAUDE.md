@@ -32,10 +32,12 @@ The dev box has no browser, so review happens through screenshots:
 node scripts/preview.mjs                       # home, a category, collections, craftsmanship
 node scripts/preview.mjs /product/some-slug    # specific pages
 node scripts/preview.mjs --mobile /            # 390px viewport
+node scripts/preview.mjs --retina /            # 2x PNG when detail matters
 ```
 
-PNGs land in `storage/app/preview/` (gitignored). Send them to the owner — a
-described change is not a reviewed change. Two caveats worth knowing:
+Images land in `storage/app/preview/` (gitignored) — JPEGs by default, because
+retina full-page shots run to double-digit megabytes and will not attach. Send
+them to the owner: a described change is not a reviewed change. Two caveats:
 
 - Sections fade in on scroll (`Reveal.jsx`), so the script scrolls the whole page
   before shooting. If a band comes out blank, the reveal did not fire — re-run.
