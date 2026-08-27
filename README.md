@@ -12,15 +12,31 @@ diamonds and Jadau Kundan heritage in BIS-hallmarked gold.
 ## Local setup
 
 ```bash
-composer install
-npm install
-cp .env.example .env        # then set DB + (optional) Razorpay keys
-php artisan key:generate
-php artisan migrate --seed                    # catalog seeded from the brochure
-php artisan db:seed --class=D2ImageSeeder     # promote curated photography
-npm run build                # or: npm run dev
-php artisan serve --port=8801
+bash scripts/local.sh          # env + database + assets, then serves on :8801
+bash scripts/local.sh --fresh  # same, but rebuilds the database from seed
 ```
+
+The script is re-runnable and only does the steps that are missing. It defaults to
+**SQLite**, so there is no MySQL to install locally; production keeps using MySQL
+through the server's own `.env`. Set `RAZORPAY_*` in `.env` if you need live
+payments — checkout runs in demo mode until you do.
+
+Screenshot the running site (handy on a machine with no browser):
+
+```bash
+node scripts/preview.mjs                    # a default set of pages
+node scripts/preview.mjs /product/<slug>    # specific paths, --mobile for 390px
+```
+
+## Deploying
+
+```bash
+bash scripts/ship.sh "what changed"
+```
+
+Merges the current branch into `main` and pushes; the Hostinger cron deploys from
+there. Full detail — including how to check a release landed — in
+`docs/ADMIN-ACCESS-AND-DEPLOY.md` §6.
 
 ## Key features
 

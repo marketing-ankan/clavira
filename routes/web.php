@@ -128,21 +128,26 @@ if ($gateKey = config('admin.gate_key')) {
     });
 }
 
-// TEMPORARY ops diagnostics — remove once the failed 2026-08-21 deploy is
-// root-caused. Tails the cron deploy log, which is otherwise unreachable
+// Ops diagnostics — tails the cron deploy log, which is otherwise unreachable
 // (laravel/ is blocked from the web and there is no SSH from the dev box).
-// The path token is the only protection, so keep the output boring: log
-// lines only, no env, no secrets.
-Route::get('/ops-beb76c83b55f3dcd2acef47b/deploy-log', function () {
-    $path = storage_path('logs/deploy.log');
-    if (! is_file($path)) {
-        return response("deploy.log does not exist at {$path}", 404)->header('Content-Type', 'text/plain');
-    }
-    $lines = @file($path, FILE_IGNORE_NEW_LINES) ?: [];
-    $tail = implode("\n", array_slice($lines, -120));
-    return response($tail === '' ? '(deploy.log is empty)' : $tail, 200)
-        ->header('Content-Type', 'text/plain');
-});
+// Registered only when OPS_LOG_KEY is set in the server .env: the path token
+// is the only protection, and this repository is public, so a hard-coded one
+// would protect nothing. Keep the output boring — log lines, no env, no
+// secrets. For "did my push go live?" use /images/deploy-status.txt instead;
+// that one is written by the deploy itself and carries nothing sensitive.
+if ($opsKey = config('ops.log_key')) {
+    Route::get('/ops/'.$opsKey.'/deploy-log', function () {
+        $path = storage_path('logs/deploy.log');
+        if (! is_file($path)) {
+            return response("deploy.log does not exist at {$path}", 404)->header('Content-Type', 'text/plain');
+        }
+        $lines = @file($path, FILE_IGNORE_NEW_LINES) ?: [];
+        $tail = implode("\n", array_slice($lines, -120));
+
+        return response($tail === '' ? '(deploy.log is empty)' : $tail, 200)
+            ->header('Content-Type', 'text/plain');
+    });
+}
 
 // SPA — React Router owns every non-API path. When a gate key is configured,
 // admin UI paths 404 unless the visitor has knocked first (set-password links

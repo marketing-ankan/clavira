@@ -122,16 +122,36 @@ php artisan clavira:mail-test you@example.com --invite # branded sample
 The app deploys from **git** — Hostinger has no Composer or Node, so `vendor/` and `public/build` are
 committed to the repo and shipped as-is.
 
-**Pipeline:** work on `dev` → merge to `main` → the server's cron pulls `main` and updates automatically.
+**Pipeline:** work on a branch → merge to `main` → the server's cron pulls `main` and updates
+automatically. Pushing `main` *is* releasing — there is no separate "deploy" button.
 
-- **Update the live site** = get the new code onto `main` and pushed:
+- **Update the live site:**
   ```bash
-  git checkout main
-  git merge dev            # fast-forward when dev is ahead
-  git push origin main
+  bash scripts/ship.sh "what changed"
   ```
-  The cron on Hostinger (`deploy/hostinger-deploy.sh`) then runs `git pull`, applies any new migrations,
-  refreshes the built assets, and rebuilds caches — within a minute or two.
+  It rebuilds the front-end, commits the refreshed assets, merges your branch into `main` and pushes.
+  The cron on Hostinger (`deploy/hostinger-deploy.sh`) then pulls, applies any new migrations, refreshes
+  the built assets at the web root, and rebuilds caches — within a minute or two.
+
+  > Use the script rather than a hand-rolled `git merge && git push`. The server has no Node, so the
+  > built JS/CSS has to travel in the commit. A push without a fresh `npm run build` puts new backend
+  > code live against the **old** interface, silently — no error anywhere, the site just looks unchanged.
+
+- **Did it land?** Open `https://YOUR-DOMAIN/images/deploy-status.txt`:
+  ```
+  deployed <sha> at <when>     the commit that is actually live
+  cron last ran <when>         refreshed every tick — a stale time means the cron is dead
+  FAILED ...                   only appears when a deploy was rolled back
+  ```
+
+- **If a migration fails**, the deploy rolls the live site back to the last good commit so the store keeps
+  serving, records the failure in the status file, and retries on every tick until a fix is pushed. Nothing
+  half-deployed is left behind, and a run that dies part-way is repeated rather than silently skipped.
+
+- **Reading the full deploy log** (rarely needed): set `OPS_LOG_KEY=<random string>` in the server `.env`,
+  then open `https://YOUR-DOMAIN/ops/<that string>/deploy-log`. Without the variable the route does not
+  exist. Never commit a value — this repository is public. The server caches config and routes, so the
+  URL starts working after the next deploy (or after re-running `php artisan config:cache route:cache`).
 
 - **First-time server setup** (once): `deploy/hostinger-setup.sh` writes `.env`, generates the app key,
   migrates + seeds, wires the web root to `laravel/public`, and blocks the app folder from the web.
